@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git branch *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(gh issue create *)",
+      "Bash(gh pr create *)",
+      "Bash(gh repo view *)",
+      "Bash(npm run lint *)",
+      "Bash(npm run typecheck *)",
+      "Bash(npm run test *)",
+      "Bash(npm run build *)",
+      "Bash(npm run dev *)",
+      "Bash(npm list *)",
+      "Bash(npm outdated *)",
+      "Bash(npx tsc --noEmit *)",
+      "Bash(npx prisma *)",
+      "Bash(node --version)",
+      "Bash(node -e *)",
+      "Bash(curl *)",
+      "Bash(mkdir *)",
+      "Bash(docker info)",
+      "Bash(docker compose ps *)",
+      "Bash(docker compose logs *)",
+      "Bash(docker compose up *)",
+      "Bash(docker compose down *)",
+      "Bash(Get-ChildItem *)",
+      "Bash(Get-Content *)",
+      "Bash(Test-Path *)",
+      "Bash(Select-String *)"
+    ],
+    "deny": []
+  }
+}
