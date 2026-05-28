@@ -1,11 +1,11 @@
 'use client';
 
-import { use, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
 
-export default function ChatPage({ params }: { params: Promise<{ threadId: string }> }) {
-  const { threadId } = use(params);
+export default function ChatPage({ params }: { params: { threadId: string } }) {
+  const { threadId } = params;
   const router = useRouter();
   const { threads, sendMessage } = useNaviThread();
   const [input, setInput] = useState('');
@@ -41,9 +41,9 @@ export default function ChatPage({ params }: { params: Promise<{ threadId: strin
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="min-h-screen">
       {/* ヘッダー */}
-      <header className="flex-none bg-white border-b border-gray-200 z-40">
+      <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="flex items-center gap-3 px-3 h-12">
           <button
             onClick={() => router.back()}
@@ -65,7 +65,7 @@ export default function ChatPage({ params }: { params: Promise<{ threadId: strin
       </header>
 
       {/* メッセージ一覧 */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-4" style={{ paddingBottom: '80px' }}>
+      <div className="px-4 py-4 space-y-4" style={{ paddingBottom: '120px' }}>
         {thread.messages.map((msg) => (
           <div
             key={msg.id}
