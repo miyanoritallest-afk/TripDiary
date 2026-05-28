@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import BottomTab from "@/components/layout/BottomTab";
 import { NaviThreadProvider } from "@/contexts/NaviThreadContext";
+import SessionProviderWrapper from "@/components/layout/SessionProviderWrapper";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,12 +29,14 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>
-        <NaviThreadProvider>
-          <main className="max-w-md mx-auto min-h-screen pb-16">
-            {children}
-          </main>
-          <BottomTab />
-        </NaviThreadProvider>
+        <SessionProviderWrapper>
+          <NaviThreadProvider>
+            <main className="max-w-md mx-auto min-h-screen pb-16">
+              {children}
+            </main>
+            <BottomTab />
+          </NaviThreadProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   );

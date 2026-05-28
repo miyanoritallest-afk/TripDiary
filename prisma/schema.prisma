@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  username     String
+  bio          String?
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  posts       Post[]
+  likes       Like[]
+  wantToGos   WantToGo[]
+  following   Follow[]        @relation("follower")
+  followers   Follow[]        @relation("following")
+  naviThreads NaviThread[]
+  preferences UserPreference?
+
+  @@map("users")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  body      String?
+  hashtags  String[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos      Photo[]
+  likes       Like[]
+  wantToGos   WantToGo[]
+  naviThreads NaviThread[]
+
+  @@map("posts")
+}
+
+model Photo {
+  id           String   @id @default(uuid())
+  postId       String   @map("post_id")
+  imageUrl     String   @map("image_url")
+  displayOrder Int      @db.SmallInt @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  pin  Pin?
+
+  @@map("photos")
+}
+
+model Pin {
+  id           String  @id @default(uuid())
+  photoId      String  @unique @map("photo_id")
+  locationName String? @map("location_name")
+  latitude     Decimal @db.Decimal(9, 6)
+  longitude    Decimal @db.Decimal(9, 6)
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@map("pins")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("likes")
+}
+
+model WantToGo {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("want_to_go")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model NaviThread {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  sourcePostId String?  @map("source_post_id")
+  title        String
+  thumbnailUrl String?  @map("thumbnail_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourcePost Post?         @relation(fields: [sourcePostId], references: [id], onDelete: SetNull)
+  messages   NaviMessage[]
+
+  @@map("navi_threads")
+}
+
+model NaviMessage {
+  id        String   @id @default(uuid())
+  threadId  String   @map("thread_id")
+  role      String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  thread NaviThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@map("navi_messages")
+}
+
+model UserPreference {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  summary   String?
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
