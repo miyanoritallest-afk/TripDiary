@@ -129,10 +129,10 @@
 |---------|------|
 | フロントエンド | Next.js 14 + TypeScript + Tailwind CSS |
 | 認証 | NextAuth.js（メール＋パスワード） |
-| データベース | PostgreSQL（Supabase） |
-| ストレージ | Supabase Storage（写真） |
+| データベース | PostgreSQL（AWS RDS） |
+| ストレージ | AWS S3（写真） |
 | 地図 | Leaflet.js + OpenStreetMap + Nominatim |
 | AI | Claude API（Haiku for dev / Sonnet for prod） |
-| ホスティング | Vercel |
+| ホスティング | AWS EC2 |
 
 詳細は [技術スタック](tech-stack.md) および [インフラ構成](infrastructure.md) を参照。

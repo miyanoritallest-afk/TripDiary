@@ -9,25 +9,27 @@
 
 | 項目 | 内容 |
 |------|------|
-| ホスティング | Vercel |
-| データベース | Supabase（PostgreSQL 15） |
-| ファイルストレージ | Supabase Storage |
+| クラウドプロバイダー | AWS |
+| アプリケーションサーバー | AWS EC2（Next.jsをNode.jsサーバーとして実行） |
+| データベース | AWS RDS（PostgreSQL） |
+| ファイルストレージ | AWS S3（写真・アバター画像） |
 | AI | Anthropic Claude API |
 | 地図・ジオコーディング | OpenStreetMap / Nominatim（外部サービス） |
 
-サーバー管理不要のサーバーレス構成。インフラのセットアップをVercel・Supabaseのマネージドサービスに委ねることで、開発・運用コストを最小化する。
+> 環境構築は今後のフェーズで実施予定。本ドキュメントは設計方針の記録。
 
 ---
 
 ## 2. インフラ構成図
 
 ```
-[ブラウザ]
+[ブラウザ（PC）]
     │
     ▼
 ┌─────────────────────────────────────────────────────────┐
-│                       Vercel                            │
+│                     AWS EC2                             │
 │              Next.js（App Router）                      │
+│              Node.js サーバーとして常駐起動             │
 │                                                         │
 │   画面（Server / Client Component）                     │
 │   APIルート（Route Handlers）                           │
@@ -38,11 +40,17 @@
                │                  │
                ▼                  ▼
 ┌──────────────────────┐  ┌───────────────────────────────┐
-│      Supabase        │  │      Anthropic Claude API     │
-│                      │  │                               │
-│  PostgreSQL（DB）    │  │  会話生成・好みサマリー更新    │
-│  Storage（写真）     │  │  Haiku（dev）/ Sonnet（prod）  │
+│      AWS RDS         │  │      Anthropic Claude API     │
+│  （PostgreSQL）      │  │                               │
+│  全アプリデータ管理   │  │  会話生成・好みサマリー更新    │
 └──────────────────────┘  └───────────────────────────────┘
+               │
+               ▼
+┌──────────────────────┐
+│      AWS S3          │
+│  写真・アバター画像   │
+│  の永続ストレージ     │
+└──────────────────────┘
                │
                ▼
 ┌──────────────────────────────────────────────────────┐
@@ -55,39 +63,43 @@
 
 ## 3. 各サービスの役割
 
-### Vercel
+### AWS EC2
 
 | 役割 | 内容 |
 |------|------|
-| フロントエンド配信 | Next.jsアプリをEdge Networkで配信、CDN自動適用 |
-| APIサーバー | Route HandlerがサーバーレスFunctionとして実行される |
-| 環境変数管理 | Vercelダッシュボードで本番・プレビュー環境の環境変数を管理 |
-| CI/CD | GitHubリポジトリと連携、mainマージで自動デプロイ |
-| プレビューデプロイ | PR毎にプレビュー環境を自動生成 |
+| アプリケーションサーバー | Next.jsを `next start`（または `npm run dev`）でNode.jsサーバーとして起動 |
+| APIサーバー | Route Handlerが同一プロセス内で実行される |
+| 環境変数管理 | EC2インスタンスの環境変数または `.env` ファイルで管理 |
 
-### Supabase
+### AWS RDS（PostgreSQL）
 
 | 役割 | 内容 |
 |------|------|
-| PostgreSQLデータベース | 全アプリデータを管理（ユーザー・投稿・ピン・リアクション等） |
-| Supabase Storage | ユーザーアバター・投稿写真を保存。公開URLで配信 |
-| Row Level Security | DB行レベルのアクセス制御（将来的に活用） |
+| データベース | 全アプリデータを管理（ユーザー・投稿・ピン・リアクション等） |
+| 接続 | EC2からPrivate IPで接続（同一VPC内） |
 
-**Supabase Storage バケット設計:**
+### AWS S3
 
-| バケット名 | 用途 | アクセス |
-|-----------|------|---------|
-| `avatars` | ユーザーアバター画像 | Public |
-| `post-photos` | 投稿写真 | Public |
+| 役割 | 内容 |
+|------|------|
+| 写真ストレージ | 投稿写真をアップロード・保管 |
+| アバター画像 | ユーザーアバター画像を保管 |
+| 公開方法 | パブリックバケットまたは署名付きURL（要検討） |
 
-**Storageオブジェクトキー構成:**
+**S3バケット設計（案）:**
+
+| バケット名 | 用途 |
+|-----------|------|
+| `tripdiary-photos` | 投稿写真・アバター画像 |
+
+**オブジェクトキー構成:**
 
 ```
-avatars/
-└── {user_id}/{filename}
-
-post-photos/
-└── {post_id}/{display_order}_{filename}
+tripdiary-photos/
+├── avatars/
+│   └── {user_id}/{filename}
+└── posts/
+    └── {post_id}/{display_order}_{filename}
 ```
 
 ### Anthropic Claude API
@@ -106,31 +118,42 @@ post-photos/
 
 ## 4. 環境構成
 
-| 環境 | ブランチ | URL | DB |
+| 環境 | 実行場所 | URL | DB |
 |------|---------|-----|----|
-| 本番 | main | https://tripdiary.vercel.app（例） | Supabase本番プロジェクト |
-| プレビュー | PRブランチ | Vercel自動生成URL | Supabase本番プロジェクト（共有） |
-| ローカル開発 | 任意 | http://localhost:3000 | Supabase本番プロジェクト（共有）またはローカルSupabase |
+| 本番 | AWS EC2 | 未定（EC2のパブリックIPまたはドメイン） | AWS RDS |
+| ローカル開発 | localhost | http://localhost:3000 | ローカルPostgreSQL（Docker Compose等） |
+
+> プロトタイプフェーズは `npm run dev` でローカル動作確認を行う。
 
 ---
 
-## 5. セキュリティ
+## 5. セキュリティ方針
 
 | 項目 | 対応 |
 |------|------|
-| APIキー管理 | `ANTHROPIC_API_KEY` / `SUPABASE_SERVICE_ROLE_KEY` はVercel環境変数で管理。クライアントに露出させない |
-| Claude API呼び出し | サーバーサイド（Route Handler）のみで実行 |
-| Supabase Storage | Public読み取り可だが、書き込みはサービスロールキーを持つサーバーサイドのみ |
+| APIキー管理 | `ANTHROPIC_API_KEY` / AWS認証情報はEC2の環境変数で管理。コードに埋め込まない |
+| Claude API呼び出し | サーバーサイド（Route Handler）のみで実行。クライアントにAPIキーを露出させない |
+| S3アクセス | IAMロールをEC2に付与し、アクセスキーのコード埋め込みを禁止する（将来対応） |
+| RDS接続 | EC2とRDSを同一VPC内に配置し、インターネットからの直接接続を禁止する（将来対応） |
 | 認証保護 | NextAuth.jsのミドルウェアで未認証アクセスをログイン画面へリダイレクト |
 | パスワード保存 | BCryptによるハッシュ化（NextAuth.jsの標準実装） |
 
 ---
 
-## 6. コスト概算（フリープラン範囲）
+## 6. ローカル開発環境との対応
 
-| サービス | フリープラン制限 | 備考 |
-|---------|----------------|------|
-| Vercel | 100GB帯域幅/月、Serverless Function実行時間制限あり | 個人利用・開発段階では十分 |
-| Supabase | 500MB DB、1GB Storage、50,000 MAU | 開発・小規模運用では十分 |
-| Anthropic Claude API | 従量課金（無料枠なし） | Haikuは安価（$0.25/MTok入力） |
-| OpenStreetMap/Nominatim | 無料（利用ポリシー遵守） | 大量リクエスト時は自前ホスティングを検討 |
+| 本番環境 | ローカル開発環境 |
+|---------|---------------|
+| AWS EC2（Next.js本番起動） | localhost:3000（`npm run dev`） |
+| AWS RDS（PostgreSQL） | ローカルPostgreSQL（Docker Composeなど） |
+| AWS S3（写真） | ローカルファイルシステムまたはAWS S3（実環境） |
+
+---
+
+## 7. 今後の構築予定（未実施）
+
+- [ ] EC2インスタンス作成・Next.js環境セットアップ
+- [ ] RDSインスタンス作成・Prismaマイグレーション実行
+- [ ] S3バケット作成・IAMロール設定
+- [ ] EC2とRDSをVPCで接続
+- [ ] 独自ドメイン設定（任意）
