@@ -33,7 +33,11 @@ export default function ActionButtons({ post, onWantToGo }: Props) {
       {/* いいねボタン */}
       <button
         onClick={handleLike}
-        className="flex items-center gap-1.5 text-sm transition-colors"
+        className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-all ${
+          liked
+            ? 'bg-red-50 border-red-400 text-red-500'
+            : 'bg-white border-gray-300 text-gray-600'
+        }`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -41,11 +45,11 @@ export default function ActionButtons({ post, onWantToGo }: Props) {
           fill={liked ? 'currentColor' : 'none'}
           stroke="currentColor"
           strokeWidth={liked ? 0 : 1.5}
-          className={`w-5 h-5 transition-colors ${liked ? 'text-red-500' : 'text-gray-400'}`}
+          className="w-5 h-5 transition-colors"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
         </svg>
-        <span className={liked ? 'text-red-500' : 'text-gray-500'}>{likeCount}</span>
+        <span className="font-medium">{likeCount}</span>
       </button>
 
       {/* 行きたい！ボタン */}

@@ -1,17 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
 
-export default function NaviPage() {
+function NaviContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { threads, createNewThread } = useNaviThread();
   const [showNewThreadModal, setShowNewThreadModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
 
-  // updatedAt降順でソート
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowNewThreadModal(true);
+      router.replace('/navi');
+    }
+  }, [searchParams, router]);
+
   const sortedThreads = [...threads].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
@@ -45,7 +52,15 @@ export default function NaviPage() {
             <span className="text-xl">🤖</span>
             <h1 className="text-lg font-bold text-gray-900">ナビちゃん</h1>
           </div>
-          <span className="text-xs text-gray-400">{threads.length}件のスレッド</span>
+          <button
+            onClick={() => setShowNewThreadModal(true)}
+            className="w-8 h-8 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+            aria-label="新しい旅の相談を作成"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -60,7 +75,6 @@ export default function NaviPage() {
                 onClick={() => router.push(`/navi/${thread.id}`)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
               >
-                {/* サムネイル */}
                 <div className="w-14 h-14 rounded-xl overflow-hidden flex-none bg-gray-100">
                   <Image
                     src={thread.thumbnailUrl}
@@ -70,8 +84,6 @@ export default function NaviPage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-
-                {/* テキスト */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-gray-900 truncate">{thread.title}</p>
@@ -84,8 +96,6 @@ export default function NaviPage() {
                     </p>
                   )}
                 </div>
-
-                {/* 矢印 */}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-300 flex-none">
                   <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
@@ -97,28 +107,14 @@ export default function NaviPage() {
         <div className="flex flex-col items-center justify-center py-24 text-gray-400 px-8">
           <span className="text-5xl mb-4">✈️</span>
           <p className="text-base font-medium text-gray-500 mb-1">まだスレッドがありません</p>
-          <p className="text-sm text-center">投稿の「行きたい！」を押すか、＋ボタンで旅の相談を始めよう！</p>
+          <p className="text-sm text-center">投稿の「行きたい！」を押すか、相談ボタンで旅の相談を始めよう！</p>
         </div>
       )}
 
-      {/* ＋FABボタン */}
-      <button
-        onClick={() => setShowNewThreadModal(true)}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center shadow-lg text-white hover:bg-blue-600 active:bg-blue-700 transition-colors z-40"
-        aria-label="新しい旅の相談を作成"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
-          <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
-        </svg>
-      </button>
-
       {/* 新規スレッド作成モーダル */}
       {showNewThreadModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50" onClick={() => setShowNewThreadModal(false)}>
-          <div
-            className="w-full max-w-md mx-auto bg-white rounded-t-2xl p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setShowNewThreadModal(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-base font-bold text-gray-900 mb-1">新しい旅の相談</h2>
             <p className="text-xs text-gray-400 mb-4">どんな旅について相談したいですか？</p>
             <input
@@ -149,5 +145,13 @@ export default function NaviPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NaviPage() {
+  return (
+    <Suspense fallback={null}>
+      <NaviContent />
+    </Suspense>
   );
 }

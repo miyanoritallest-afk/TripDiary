@@ -50,7 +50,7 @@ export default function PhotoSwiper({ photoUrls, onPhotoChange }: Props) {
   if (photoUrls.length === 0) return null;
 
   return (
-    <div className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden">
+    <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
       {/* スワイプコンテナ */}
       <div
         ref={containerRef}

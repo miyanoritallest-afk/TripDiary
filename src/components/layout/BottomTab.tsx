@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
-const tabs = [
+const leftTabs = [
   {
     href: '/timeline',
     label: 'タイムライン',
@@ -22,6 +22,9 @@ const tabs = [
       </svg>
     ),
   },
+];
+
+const rightTabs = [
   {
     href: '/navi',
     label: 'ナビちゃん',
@@ -31,29 +34,82 @@ const tabs = [
       </svg>
     ),
   },
+  {
+    href: '/profile',
+    label: 'プロフィール',
+    icon: (active: boolean) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 0 : 1.5} className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function BottomTab() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handlePost = () => {
+    const base = pathname.startsWith('/following') ? '/following' : '/timeline';
+    router.push(`${base}?post=1`);
+  };
+
+  const handleConsult = () => {
+    router.push('/navi?new=1');
+  };
+
+  const renderTab = (tab: typeof leftTabs[0]) => {
+    const active = pathname.startsWith(tab.href);
+    return (
+      <Link
+        key={tab.href}
+        href={tab.href}
+        className={`flex flex-col items-center gap-0.5 min-w-[52px] transition-colors ${
+          active ? 'text-blue-500' : 'text-gray-400'
+        }`}
+      >
+        {tab.icon(active)}
+        <span className="text-[10px] font-medium">{tab.label}</span>
+      </Link>
+    );
+  };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 z-50">
-      <div className="max-w-md mx-auto h-full flex items-center justify-around px-4">
-        {tabs.map((tab) => {
-          const active = pathname.startsWith(tab.href);
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex flex-col items-center gap-0.5 min-w-[60px] transition-colors ${
-                active ? 'text-blue-500' : 'text-gray-400'
-              }`}
-            >
-              {tab.icon(active)}
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </Link>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t-2 border-blue-200 z-50">
+      <div className="max-w-md mx-auto h-full flex items-center justify-around px-1">
+        {/* 左2タブ */}
+        {leftTabs.map(renderTab)}
+
+        {/* 中央左：投稿ボタン */}
+        <button
+          onClick={handlePost}
+          className="flex flex-col items-center gap-0.5 -mt-5 min-w-[52px]"
+          aria-label="投稿する"
+        >
+          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-md text-white hover:bg-blue-600 active:bg-blue-700 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-[10px] font-medium text-gray-400">投稿</span>
+        </button>
+
+        {/* 中央右：相談ボタン */}
+        <button
+          onClick={handleConsult}
+          className="flex flex-col items-center gap-0.5 -mt-5 min-w-[52px]"
+          aria-label="旅を相談する"
+        >
+          <div className="w-12 h-12 bg-sky-400 rounded-full flex items-center justify-center shadow-md text-white hover:bg-sky-500 active:bg-sky-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405Z" />
+            </svg>
+          </div>
+          <span className="text-[10px] font-medium text-gray-400">相談</span>
+        </button>
+
+        {/* 右2タブ */}
+        {rightTabs.map(renderTab)}
       </div>
     </nav>
   );

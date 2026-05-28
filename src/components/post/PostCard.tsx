@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Post } from '@/types';
 import PhotoSwiper from './PhotoSwiper';
 import LocationBadge from './LocationBadge';
@@ -39,7 +40,7 @@ export default function PostCard({ post, onWantToGo }: Props) {
   return (
     <article className="bg-white border-b border-gray-100">
       {/* ユーザー情報 */}
-      <div className="flex items-center gap-2.5 px-3 py-2.5">
+      <Link href={`/user/${post.user.id}/posts`} className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 transition-colors">
         <div className="w-9 h-9 rounded-full overflow-hidden flex-none">
           <Image
             src={post.user.avatarUrl}
@@ -53,7 +54,7 @@ export default function PostCard({ post, onWantToGo }: Props) {
           <p className="text-sm font-semibold text-gray-900 truncate">{post.user.name}</p>
           <p className="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
         </div>
-      </div>
+      </Link>
 
       {/* 写真スワイプ */}
       <PhotoSwiper
