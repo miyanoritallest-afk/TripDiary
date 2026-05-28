@@ -1,12 +1,17 @@
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { mockPosts } from '@/lib/mock/posts';
-import { mockUsers } from '@/lib/mock/users';
 import PostCard from '@/components/post/PostCard';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
-import { Post } from '@/types';
+import { Post, User } from '@/types';
+
+type ProfileData = User & {
+  bio: string | null;
+  postCount: number;
+  followerCount: number;
+  followingCount: number;
+};
 
 function UserPostsContent({ params }: { params: { userId: string } }) {
   const router = useRouter();
@@ -14,16 +19,36 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
   const { addThreadFromPost } = useNaviThread();
   const targetPostId = searchParams.get('postId');
 
-  const user = mockUsers.find((u) => u.id === params.userId);
-  const userPosts = mockPosts.filter((p) => p.user.id === params.userId);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   const targetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/profiles/${params.userId}`),
+      fetch(`/api/posts?type=all&limit=50`),
+    ]).then(async ([profileRes, postsRes]) => {
+      if (!profileRes.ok) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      const profileData = await profileRes.json() as ProfileData;
+      const postsData = await postsRes.json() as { posts: Post[] };
+      setProfile(profileData);
+      setPosts(postsData.posts.filter((p) => p.user.id === params.userId));
+      setLoading(false);
+    });
+  }, [params.userId]);
 
   useEffect(() => {
     if (targetRef.current) {
       targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [targetPostId]);
+  }, [targetPostId, posts]);
 
   const handleWantToGo = (post: Post) => {
     addThreadFromPost(post);
@@ -38,7 +63,15 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
     setTimeout(() => toast.remove(), 2500);
   };
 
-  if (!user) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-400 text-sm">
+        読み込み中...
+      </div>
+    );
+  }
+
+  if (notFound || !profile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-gray-400">
         <p>ユーザーが見つかりません</p>
@@ -56,13 +89,13 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
               <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
             </svg>
           </button>
-          <h1 className="text-sm font-bold text-gray-900 truncate">{user.name}の投稿</h1>
+          <h1 className="text-sm font-bold text-gray-900 truncate">{profile.name}の投稿</h1>
         </div>
       </header>
 
-      {userPosts.length > 0 ? (
+      {posts.length > 0 ? (
         <div>
-          {userPosts.map((post) => (
+          {posts.map((post) => (
             <div key={post.id} ref={post.id === targetPostId ? targetRef : null}>
               <PostCard post={post} onWantToGo={handleWantToGo} />
             </div>

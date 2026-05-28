@@ -21,6 +21,8 @@ export type Post = {
   hashtags: string[];
   likeCount: number;
   wantToGoCount: number;
+  isLiked: boolean;
+  isWantToGo: boolean;
   createdAt: string;     // ISO8601
 };
 

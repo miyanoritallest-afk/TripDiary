@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { mockPosts } from '@/lib/mock/posts';
 import PostCard from '@/components/post/PostCard';
+import PostCreateModal from '@/components/post/PostCreateModal';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
 import { Post } from '@/types';
 
@@ -13,8 +13,10 @@ function FollowingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPostModal, setShowPostModal] = useState(false);
-
-  const followingPosts = mockPosts.filter((post) => post.user.isFollowing);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('post') === '1') {
@@ -22,9 +24,50 @@ function FollowingContent() {
     }
   }, [searchParams]);
 
+  const fetchPosts = useCallback(async (cursor?: string) => {
+    const params = new URLSearchParams({ type: 'following', limit: '20' });
+    if (cursor) params.set('cursor', cursor);
+    const res = await fetch(`/api/posts?${params}`);
+    if (!res.ok) return;
+    const data = await res.json() as { posts: Post[]; nextCursor: string | null };
+    return data;
+  }, []);
+
+  useEffect(() => {
+    fetchPosts().then((data) => {
+      if (data) {
+        setPosts(data.posts);
+        setNextCursor(data.nextCursor);
+      }
+      setLoading(false);
+    });
+  }, [fetchPosts]);
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    const data = await fetchPosts(nextCursor);
+    if (data) {
+      setPosts((prev) => [...prev, ...data.posts]);
+      setNextCursor(data.nextCursor);
+    }
+    setLoadingMore(false);
+  };
+
   const closeModal = () => {
     setShowPostModal(false);
     router.replace('/following');
+  };
+
+  const handlePostSuccess = async () => {
+    closeModal();
+    setLoading(true);
+    const data = await fetchPosts();
+    if (data) {
+      setPosts(data.posts);
+      setNextCursor(data.nextCursor);
+    }
+    setLoading(false);
   };
 
   const handleWantToGo = (post: Post) => {
@@ -49,36 +92,30 @@ function FollowingContent() {
       </header>
 
       {showPostModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={closeModal}>
-          <div className="w-full max-w-md bg-white rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-base font-bold text-gray-900 mb-1">新しい投稿</h2>
-            <p className="text-xs text-gray-400 mb-4">写真と旅の思い出を共有しよう</p>
-            <div className="w-full h-32 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-sm mb-4">
-              📷 写真を追加（プロトタイプ）
-            </div>
-            <textarea
-              placeholder="旅の感想を書こう..."
-              rows={3}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none"
-            />
-            <div className="flex gap-2 mt-4">
-              <button onClick={closeModal} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm text-gray-600">
-                キャンセル
-              </button>
-              <button onClick={closeModal} className="flex-1 py-3 rounded-xl bg-blue-500 text-white text-sm font-medium">
-                投稿する
-              </button>
-            </div>
-          </div>
-        </div>
+        <PostCreateModal onClose={closeModal} onSuccess={handlePostSuccess} />
       )}
 
-      {followingPosts.length > 0 ? (
-        <div>
-          {followingPosts.map((post) => (
-            <PostCard key={post.id} post={post} onWantToGo={handleWantToGo} />
-          ))}
-        </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-gray-400 text-sm">読み込み中...</div>
+      ) : posts.length > 0 ? (
+        <>
+          <div>
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} onWantToGo={handleWantToGo} />
+            ))}
+          </div>
+          {nextCursor && (
+            <div className="flex justify-center py-6">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-6 py-2 text-sm text-blue-500 border border-blue-300 rounded-full hover:bg-blue-50 disabled:opacity-50"
+              >
+                {loadingMore ? '読み込み中...' : 'もっと見る'}
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <span className="text-4xl mb-3">👥</span>

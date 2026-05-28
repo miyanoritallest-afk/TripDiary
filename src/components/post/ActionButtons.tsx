@@ -9,9 +9,9 @@ type Props = {
 };
 
 export default function ActionButtons({ post, onWantToGo }: Props) {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState(post.likeCount);
-  const [wantToGo, setWantToGo] = useState(false);
+  const [wantToGo, setWantToGo] = useState(post.isWantToGo);
   const [wantToGoCount, setWantToGoCount] = useState(post.wantToGoCount);
 
   const handleLike = () => {

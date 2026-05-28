@@ -1,20 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { mockPosts } from '@/lib/mock/posts';
-import { mockUsers } from '@/lib/mock/users';
+import { useSession } from 'next-auth/react';
+import { Post, User } from '@/types';
 
-// プロトタイプ: user_1（田中さくら）をログインユーザーと仮定
-const ME = mockUsers[0];
-const myPosts = mockPosts.filter((p) => p.user.id === ME.id);
-// フォロワー/フォロー中のダミーデータ（プロトタイプ）
-const FOLLOWERS = mockUsers.filter((u) => u.id !== ME.id).slice(0, 3);
-const FOLLOWING = mockUsers.filter((u) => u.isFollowing && u.id !== ME.id);
+type ProfileData = User & {
+  bio: string | null;
+  postCount: number;
+  followerCount: number;
+  followingCount: number;
+};
 
 export default function ProfilePage() {
+  const { data: session } = useSession();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userListModal, setUserListModal] = useState<'followers' | 'following' | null>(null);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const userId = session.user.id;
+    Promise.all([
+      fetch(`/api/profiles/${userId}`).then((r) => r.json()) as Promise<ProfileData>,
+      fetch(`/api/posts?type=all&limit=50`).then((r) => r.json()) as Promise<{ posts: Post[] }>,
+    ]).then(([profileData, postsData]) => {
+      setProfile(profileData);
+      setPosts(postsData.posts.filter((p) => p.user.id === userId));
+      setLoading(false);
+    });
+  }, [session]);
+
+  if (loading || !profile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-400 text-sm">
+        読み込み中...
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -28,38 +54,41 @@ export default function ProfilePage() {
       <div className="bg-white px-4 py-6 flex flex-col items-center gap-3 border-b border-gray-100">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
           <Image
-            src={ME.avatarUrl}
-            alt={ME.name}
+            src={profile.avatarUrl}
+            alt={profile.name}
             width={80}
             height={80}
             className="w-full h-full object-cover"
           />
         </div>
         <div className="text-center">
-          <p className="text-base font-bold text-gray-900">{ME.name}</p>
-          <p className="text-xs text-gray-400 mt-0.5">@{ME.id}</p>
+          <p className="text-base font-bold text-gray-900">{profile.name}</p>
+          <p className="text-xs text-gray-400 mt-0.5">@{profile.id}</p>
+          {profile.bio && (
+            <p className="text-xs text-gray-500 mt-1 max-w-xs">{profile.bio}</p>
+          )}
         </div>
         <div className="flex gap-8 mt-1">
           <div className="text-center">
-            <p className="text-base font-bold text-gray-900">{myPosts.length}</p>
+            <p className="text-base font-bold text-gray-900">{profile.postCount}</p>
             <p className="text-xs text-gray-400">投稿</p>
           </div>
           <button className="text-center" onClick={() => setUserListModal('followers')}>
-            <p className="text-base font-bold text-gray-900">128</p>
+            <p className="text-base font-bold text-gray-900">{profile.followerCount}</p>
             <p className="text-xs text-gray-400">フォロワー</p>
           </button>
           <button className="text-center" onClick={() => setUserListModal('following')}>
-            <p className="text-base font-bold text-gray-900">64</p>
+            <p className="text-base font-bold text-gray-900">{profile.followingCount}</p>
             <p className="text-xs text-gray-400">フォロー中</p>
           </button>
         </div>
       </div>
 
       {/* 投稿グリッド */}
-      {myPosts.length > 0 ? (
+      {posts.length > 0 ? (
         <div className="grid grid-cols-3 gap-0.5 bg-gray-100">
-          {myPosts.map((post) => (
-            <Link key={post.id} href={`/user/${ME.id}/posts?postId=${post.id}`} className="aspect-square overflow-hidden bg-gray-200 block">
+          {posts.map((post) => (
+            <Link key={post.id} href={`/user/${profile.id}/posts?postId=${post.id}`} className="aspect-square overflow-hidden bg-gray-200 block">
               <Image
                 src={post.photoUrls[0]}
                 alt={post.body.slice(0, 20)}
@@ -77,7 +106,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* フォロワー/フォロー中モーダル */}
+      {/* フォロワー/フォロー中モーダル（フェーズ3で詳細実装） */}
       {userListModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setUserListModal(null)}>
           <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
@@ -91,21 +120,8 @@ export default function ProfilePage() {
                 </svg>
               </button>
             </div>
-            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-              {(userListModal === 'followers' ? FOLLOWERS : FOLLOWING).map((user) => (
-                <div key={user.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-none bg-gray-100">
-                    <Image src={user.avatarUrl} alt={user.name} width={40} height={40} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                    <p className="text-xs text-gray-400">@{user.id}</p>
-                  </div>
-                  <button className="text-xs font-medium px-3 py-1.5 rounded-full border border-gray-300 text-gray-600">
-                    {userListModal === 'followers' ? 'フォロー' : 'フォロー中'}
-                  </button>
-                </div>
-              ))}
+            <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
+              フェーズ3で実装予定
             </div>
           </div>
         </div>

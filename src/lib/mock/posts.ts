@@ -20,6 +20,8 @@ export const mockPosts: Post[] = [
     hashtags: ['京都旅行', '紅葉', '一人旅', '女子旅'],
     likeCount: 42,
     wantToGoCount: 18,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-20T09:00:00Z',
   },
   {
@@ -39,6 +41,8 @@ export const mockPosts: Post[] = [
     hashtags: ['沖縄', '海', '夏旅', 'シュノーケリング'],
     likeCount: 89,
     wantToGoCount: 35,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-18T14:00:00Z',
   },
   {
@@ -62,6 +66,8 @@ export const mockPosts: Post[] = [
     hashtags: ['パリ', 'フランス', 'ヨーロッパ', '海外旅行'],
     likeCount: 124,
     wantToGoCount: 67,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-15T10:30:00Z',
   },
   {
@@ -79,6 +85,8 @@ export const mockPosts: Post[] = [
     hashtags: ['北海道', 'ラベンダー', '富良野', 'ドライブ旅'],
     likeCount: 56,
     wantToGoCount: 29,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-12T16:00:00Z',
   },
   {
@@ -94,6 +102,8 @@ export const mockPosts: Post[] = [
     hashtags: ['箱根', '温泉', '週末旅行', '富士山'],
     likeCount: 33,
     wantToGoCount: 14,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-10T11:00:00Z',
   },
   {
@@ -112,6 +122,8 @@ export const mockPosts: Post[] = [
     hashtags: ['台湾', '台北', '九份', '夜市', 'アジア旅'],
     likeCount: 71,
     wantToGoCount: 41,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-08T09:00:00Z',
   },
   {
@@ -128,6 +140,8 @@ export const mockPosts: Post[] = [
     hashtags: ['日光', '東照宮', '世界遺産', '歴史旅'],
     likeCount: 28,
     wantToGoCount: 12,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-05T13:00:00Z',
   },
   {
@@ -147,6 +161,8 @@ export const mockPosts: Post[] = [
     hashtags: ['バリ島', 'インドネシア', 'リゾート', 'ビーチ'],
     likeCount: 98,
     wantToGoCount: 52,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-05-01T10:00:00Z',
   },
   {
@@ -164,6 +180,8 @@ export const mockPosts: Post[] = [
     hashtags: ['大阪', 'グルメ旅', 'たこ焼き', '道頓堀'],
     likeCount: 45,
     wantToGoCount: 22,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-04-28T15:00:00Z',
   },
   {
@@ -182,6 +200,8 @@ export const mockPosts: Post[] = [
     hashtags: ['シンガポール', '海外旅行', 'アジア', 'リゾート'],
     likeCount: 63,
     wantToGoCount: 38,
+    isLiked: false,
+    isWantToGo: false,
     createdAt: '2026-04-25T12:00:00Z',
   },
 ];
