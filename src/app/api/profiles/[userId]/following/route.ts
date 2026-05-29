@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { userId: string } },
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const follows = await prisma.follow.findMany({
+    where: { followerId: params.userId },
+    include: {
+      following: {
+        include: {
+          _count: { select: { following: true, followers: true, posts: true } },
+          following: {
+            where: { followerId: session.user.id },
+            take: 1,
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const users = follows.map((f) => ({
+    id: f.following.id,
+    name: f.following.username,
+    avatarUrl: f.following.avatarUrl ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(f.following.username)}&background=random`,
+    isFollowing: f.following.following.length > 0,
+  }));
+
+  return NextResponse.json(users);
+}

@@ -14,17 +14,51 @@ export default function ActionButtons({ post, onWantToGo }: Props) {
   const [wantToGo, setWantToGo] = useState(post.isWantToGo);
   const [wantToGoCount, setWantToGoCount] = useState(post.wantToGoCount);
 
-  const handleLike = () => {
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+  const handleLike = async () => {
+    // 楽観的UI: 先にUIを更新してからAPIを呼ぶ
+    const next = !liked;
+    setLiked(next);
+    setLikeCount((prev) => (next ? prev + 1 : prev - 1));
+
+    try {
+      const res = await fetch(`/api/posts/${post.id}/likes`, {
+        method: next ? 'POST' : 'DELETE',
+      });
+      if (res.ok) {
+        const data = await res.json() as { likeCount: number };
+        setLikeCount(data.likeCount);
+      } else {
+        // 失敗時はロールバック
+        setLiked(!next);
+        setLikeCount((prev) => (next ? prev - 1 : prev + 1));
+      }
+    } catch {
+      setLiked(!next);
+      setLikeCount((prev) => (next ? prev - 1 : prev + 1));
+    }
   };
 
-  const handleWantToGo = () => {
+  const handleWantToGo = async () => {
     const next = !wantToGo;
     setWantToGo(next);
-    setWantToGoCount((prev) => (wantToGo ? prev - 1 : prev + 1));
-    if (next) {
-      onWantToGo(post);
+    setWantToGoCount((prev) => (next ? prev + 1 : prev - 1));
+
+    if (next) onWantToGo(post);
+
+    try {
+      const res = await fetch(`/api/posts/${post.id}/want-to-go`, {
+        method: next ? 'POST' : 'DELETE',
+      });
+      if (res.ok) {
+        const data = await res.json() as { wantToGoCount: number };
+        setWantToGoCount(data.wantToGoCount);
+      } else {
+        setWantToGo(!next);
+        setWantToGoCount((prev) => (next ? prev - 1 : prev + 1));
+      }
+    } catch {
+      setWantToGo(!next);
+      setWantToGoCount((prev) => (next ? prev - 1 : prev + 1));
     }
   };
 

@@ -13,17 +13,21 @@ type ProfileData = User & {
   followingCount: number;
 };
 
+type UserListItem = User;
+
 export default function ProfilePage() {
   const { data: session } = useSession();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [userListModal, setUserListModal] = useState<'followers' | 'following' | null>(null);
+  const [userList, setUserList] = useState<UserListItem[]>([]);
+  const [userListLoading, setUserListLoading] = useState(false);
 
   useEffect(() => {
     if (!session?.user?.id) return;
-
     const userId = session.user.id;
+
     Promise.all([
       fetch(`/api/profiles/${userId}`).then((r) => r.json()) as Promise<ProfileData>,
       fetch(`/api/posts?type=all&limit=50`).then((r) => r.json()) as Promise<{ posts: Post[] }>,
@@ -33,6 +37,36 @@ export default function ProfilePage() {
       setLoading(false);
     });
   }, [session]);
+
+  const openUserList = async (type: 'followers' | 'following') => {
+    if (!profile) return;
+    setUserListModal(type);
+    setUserList([]);
+    setUserListLoading(true);
+    const res = await fetch(`/api/profiles/${profile.id}/${type}`);
+    if (res.ok) {
+      const data = await res.json() as UserListItem[];
+      setUserList(data);
+    }
+    setUserListLoading(false);
+  };
+
+  const handleFollow = async (targetId: string, currentlyFollowing: boolean) => {
+    const method = currentlyFollowing ? 'DELETE' : 'POST';
+    const url = currentlyFollowing ? `/api/follows/${targetId}` : '/api/follows';
+    const body = currentlyFollowing ? undefined : JSON.stringify({ followingId: targetId });
+
+    const res = await fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body,
+    });
+    if (res.ok) {
+      setUserList((prev) =>
+        prev.map((u) => u.id === targetId ? { ...u, isFollowing: !currentlyFollowing } : u),
+      );
+    }
+  };
 
   if (loading || !profile) {
     return (
@@ -63,7 +97,7 @@ export default function ProfilePage() {
         </div>
         <div className="text-center">
           <p className="text-base font-bold text-gray-900">{profile.name}</p>
-          <p className="text-xs text-gray-400 mt-0.5">@{profile.id}</p>
+          <p className="text-xs text-gray-400 mt-0.5">@{profile.id.slice(0, 8)}</p>
           {profile.bio && (
             <p className="text-xs text-gray-500 mt-1 max-w-xs">{profile.bio}</p>
           )}
@@ -73,11 +107,11 @@ export default function ProfilePage() {
             <p className="text-base font-bold text-gray-900">{profile.postCount}</p>
             <p className="text-xs text-gray-400">投稿</p>
           </div>
-          <button className="text-center" onClick={() => setUserListModal('followers')}>
+          <button className="text-center" onClick={() => openUserList('followers')}>
             <p className="text-base font-bold text-gray-900">{profile.followerCount}</p>
             <p className="text-xs text-gray-400">フォロワー</p>
           </button>
-          <button className="text-center" onClick={() => setUserListModal('following')}>
+          <button className="text-center" onClick={() => openUserList('following')}>
             <p className="text-base font-bold text-gray-900">{profile.followingCount}</p>
             <p className="text-xs text-gray-400">フォロー中</p>
           </button>
@@ -106,7 +140,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* フォロワー/フォロー中モーダル（フェーズ3で詳細実装） */}
+      {/* フォロワー/フォロー中モーダル */}
       {userListModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setUserListModal(null)}>
           <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
@@ -120,8 +154,39 @@ export default function ProfilePage() {
                 </svg>
               </button>
             </div>
-            <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
-              フェーズ3で実装予定
+            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+              {userListLoading ? (
+                <div className="flex items-center justify-center py-10 text-gray-400 text-sm">読み込み中...</div>
+              ) : userList.length === 0 ? (
+                <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
+                  {userListModal === 'followers' ? 'フォロワーはいません' : 'フォロー中のユーザーはいません'}
+                </div>
+              ) : (
+                userList.map((user) => (
+                  <div key={user.id} className="flex items-center gap-3 px-4 py-3">
+                    <Link href={`/user/${user.id}/posts`} onClick={() => setUserListModal(null)} className="w-10 h-10 rounded-full overflow-hidden flex-none bg-gray-100">
+                      <Image src={user.avatarUrl} alt={user.name} width={40} height={40} className="w-full h-full object-cover" />
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/user/${user.id}/posts`} onClick={() => setUserListModal(null)}>
+                        <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                      </Link>
+                    </div>
+                    {user.id !== session?.user?.id && (
+                      <button
+                        onClick={() => handleFollow(user.id, user.isFollowing)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+                          user.isFollowing
+                            ? 'border-gray-300 text-gray-600 hover:border-red-300 hover:text-red-500'
+                            : 'border-blue-400 text-blue-500 hover:bg-blue-50'
+                        }`}
+                      >
+                        {user.isFollowing ? 'フォロー中' : 'フォロー'}
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
