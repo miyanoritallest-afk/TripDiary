@@ -28,10 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 overflow-y-scroll`}>
         <SessionProviderWrapper>
           <NaviThreadProvider>
-            <main className="max-w-md mx-auto min-h-screen pb-16">
+            <main className="max-w-xl mx-auto min-h-screen pb-16">
               {children}
             </main>
             <BottomTab />

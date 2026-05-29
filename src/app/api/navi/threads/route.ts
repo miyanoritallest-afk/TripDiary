@@ -71,17 +71,26 @@ export async function POST(req: NextRequest) {
     ? body.initialContext
     : `「${body.title}」について旅の相談を始めたいです。`;
 
-  const aiResponse = await anthropic.messages.create({
-    model: process.env.NODE_ENV === 'production' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5',
-    max_tokens: 512,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userMsg }],
-  });
+  // sourcePostId がある（＝「行きたい！」からの起動）場合は目的地名を活かしたフォールバック
+  const destinationName = body.title.replace(/の旅プラン$/, '').replace(/について$/, '').trim();
+  const fallbackContent = body.sourcePostId
+    ? `${destinationName}に興味があるんですね！✈️ いつ頃行きたいですか？また、観光・グルメ・アクティビティなど、特にやってみたいことはありますか？`
+    : `こんにちは！「${destinationName}」への旅、一緒に計画しましょう😊 いつ頃・どんなスタイルで行きたいか教えてください！`;
 
-  const initialContent =
-    aiResponse.content[0].type === 'text'
-      ? aiResponse.content[0].text
-      : 'どんな旅を考えていますか？✈️';
+  let initialContent = fallbackContent;
+  try {
+    const aiResponse = await anthropic.messages.create({
+      model: process.env.NODE_ENV === 'production' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMsg }],
+    });
+    if (aiResponse.content[0].type === 'text') {
+      initialContent = aiResponse.content[0].text;
+    }
+  } catch {
+    // APIキー未設定などの場合はフォールバックテキストを使用
+  }
 
   const thread = await prisma.naviThread.create({
     data: {

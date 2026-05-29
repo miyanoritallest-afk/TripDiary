@@ -132,6 +132,7 @@ export function NaviThreadProvider({ children }: { children: ReactNode }) {
               accumulated += event.content;
               setStreamingContent(accumulated);
             } else if (event.type === 'done') {
+              // streamingContent をスレッドの確定メッセージに移動（追加ではなく置き換え）
               const naviMessage = {
                 id: event.messageId,
                 role: 'navi' as const,
@@ -139,11 +140,25 @@ export function NaviThreadProvider({ children }: { children: ReactNode }) {
                 createdAt: new Date().toISOString(),
               };
               setThreads((prev) =>
-                prev.map((t) =>
-                  t.id === threadId
-                    ? { ...t, messages: [...t.messages, naviMessage], updatedAt: new Date().toISOString() }
-                    : t,
-                ),
+                prev.map((t) => {
+                  if (t.id !== threadId) return t;
+                  // temp_navi_ があれば置き換え、なければ追加
+                  const hasTempNavi = t.messages.some((m) => m.id.startsWith('temp_navi_'));
+                  if (hasTempNavi) {
+                    return {
+                      ...t,
+                      messages: t.messages.map((m) =>
+                        m.id.startsWith('temp_navi_') ? naviMessage : m,
+                      ),
+                      updatedAt: new Date().toISOString(),
+                    };
+                  }
+                  return {
+                    ...t,
+                    messages: [...t.messages, naviMessage],
+                    updatedAt: new Date().toISOString(),
+                  };
+                }),
               );
             }
           } catch {

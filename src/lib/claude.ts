@@ -48,7 +48,7 @@ export async function updateUserPreferences(userId: string, threadId: string): P
       : `以下の旅行相談会話からユーザーの旅行嗜好を100文字以内でサマリーしてください:\n${conversationText}`;
 
     const response = await anthropic.messages.create({
-      model: process.env.NODE_ENV === 'production' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5',
+      model: process.env.NODE_ENV === 'production' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
       max_tokens: 200,
       messages: [{ role: 'user', content: prompt }],
     });

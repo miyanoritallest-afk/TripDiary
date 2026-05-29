@@ -16,7 +16,7 @@ export async function GET(
       following: {
         include: {
           _count: { select: { following: true, followers: true, posts: true } },
-          following: {
+          followers: {
             where: { followerId: session.user.id },
             take: 1,
           },
@@ -30,7 +30,7 @@ export async function GET(
     id: f.following.id,
     name: f.following.username,
     avatarUrl: f.following.avatarUrl ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(f.following.username)}&background=random`,
-    isFollowing: f.following.following.length > 0,
+    isFollowing: f.following.followers.length > 0,
   }));
 
   return NextResponse.json(users);

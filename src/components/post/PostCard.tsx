@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Post } from '@/types';
 import PhotoSwiper from './PhotoSwiper';
 import LocationBadge from './LocationBadge';
@@ -17,11 +18,42 @@ const PostMap = dynamic(() => import('@/components/map/PostMap'), {
 type Props = {
   post: Post;
   onWantToGo: (post: Post) => void;
+  onDelete?: (postId: string) => void;
 };
 
-export default function PostCard({ post, onWantToGo }: Props) {
+export default function PostCard({ post, onWantToGo, onDelete }: Props) {
+  const { data: session } = useSession();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showMap, setShowMap] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const isOwner = session?.user?.id === post.user.id;
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [menuOpen]);
+
+  const handleDelete = async () => {
+    if (!confirm('この投稿を削除しますか？')) return;
+    setDeleting(true);
+    setMenuOpen(false);
+    const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      onDelete?.(post.id);
+    } else {
+      alert('削除に失敗しました');
+      setDeleting(false);
+    }
+  };
 
   // 現在の写真に対応するピンのlocationNameを取得
   const currentPin = post.photoPins.find((p) => p.photoIndex === currentPhotoIndex);
@@ -38,23 +70,49 @@ export default function PostCard({ post, onWantToGo }: Props) {
   };
 
   return (
-    <article className="bg-white border-b border-gray-100">
+    <article className={`bg-white border-b border-gray-100 ${deleting ? 'opacity-50 pointer-events-none' : ''}`}>
       {/* ユーザー情報 */}
-      <Link href={`/user/${post.user.id}/posts`} className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 transition-colors">
-        <div className="w-9 h-9 rounded-full overflow-hidden flex-none">
-          <Image
-            src={post.user.avatarUrl}
-            alt={post.user.name}
-            width={36}
-            height={36}
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{post.user.name}</p>
-          <p className="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
-        </div>
-      </Link>
+      <div className="flex items-center gap-2.5 px-3 py-2">
+        <Link href={`/user/${post.user.id}/posts`} className="flex items-center gap-2.5 flex-1 min-w-0 hover:bg-gray-50 transition-colors rounded-lg -mx-1 px-1">
+          <div className="w-9 h-9 rounded-full overflow-hidden flex-none">
+            <Image
+              src={post.user.avatarUrl}
+              alt={post.user.name}
+              width={36}
+              height={36}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{post.user.name}</p>
+            <p className="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
+          </div>
+        </Link>
+        {isOwner && (
+          <div className="relative flex-none" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-9 w-36 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  投稿を削除
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* 写真スワイプ */}
       <PhotoSwiper

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -23,6 +23,54 @@ export default function ProfilePage() {
   const [userListModal, setUserListModal] = useState<'followers' | 'following' | null>(null);
   const [userList, setUserList] = useState<UserListItem[]>([]);
   const [userListLoading, setUserListLoading] = useState(false);
+
+  // プロフィール編集モーダル
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editAvatarUrl, setEditAvatarUrl] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editAvatarUploading, setEditAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const openEdit = () => {
+    if (!profile) return;
+    setEditName(profile.name);
+    setEditBio(profile.bio ?? '');
+    setEditAvatarUrl(profile.avatarUrl);
+    setEditOpen(true);
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditAvatarUploading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/photos', { method: 'POST', body: fd });
+    if (res.ok) {
+      const data = await res.json() as { url: string };
+      setEditAvatarUrl(data.url);
+    }
+    setEditAvatarUploading(false);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleEditSave = async () => {
+    if (!profile || !session?.user?.id) return;
+    setEditSaving(true);
+    const res = await fetch(`/api/profiles/${session.user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: editName.trim(), bio: editBio.trim(), avatarUrl: editAvatarUrl }),
+    });
+    if (res.ok) {
+      const updated = await res.json() as ProfileData;
+      setProfile(updated);
+      setEditOpen(false);
+    }
+    setEditSaving(false);
+  };
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -81,6 +129,12 @@ export default function ProfilePage() {
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="flex items-center justify-between px-4 h-12">
           <h1 className="text-lg font-bold text-gray-900">プロフィール</h1>
+          <button
+            onClick={openEdit}
+            className="text-sm text-blue-500 font-medium hover:text-blue-700"
+          >
+            編集
+          </button>
         </div>
       </header>
 
@@ -96,24 +150,24 @@ export default function ProfilePage() {
           />
         </div>
         <div className="text-center">
-          <p className="text-base font-bold text-gray-900">{profile.name}</p>
-          <p className="text-xs text-gray-400 mt-0.5">@{profile.id.slice(0, 8)}</p>
+          <p className="text-xl font-bold text-gray-900">{profile.name}</p>
+          <p className="text-sm text-gray-400 mt-0.5">@{profile.id.slice(0, 8)}</p>
           {profile.bio && (
-            <p className="text-xs text-gray-500 mt-1 max-w-xs">{profile.bio}</p>
+            <p className="text-sm text-gray-500 mt-2 max-w-xs leading-relaxed">{profile.bio}</p>
           )}
         </div>
-        <div className="flex gap-8 mt-1">
+        <div className="flex gap-10 mt-2">
           <div className="text-center">
-            <p className="text-base font-bold text-gray-900">{profile.postCount}</p>
-            <p className="text-xs text-gray-400">投稿</p>
+            <p className="text-xl font-bold text-gray-900">{profile.postCount}</p>
+            <p className="text-sm text-gray-500 mt-0.5">投稿</p>
           </div>
           <button className="text-center" onClick={() => openUserList('followers')}>
-            <p className="text-base font-bold text-gray-900">{profile.followerCount}</p>
-            <p className="text-xs text-gray-400">フォロワー</p>
+            <p className="text-xl font-bold text-gray-900">{profile.followerCount}</p>
+            <p className="text-sm text-gray-500 mt-0.5">フォロワー</p>
           </button>
           <button className="text-center" onClick={() => openUserList('following')}>
-            <p className="text-base font-bold text-gray-900">{profile.followingCount}</p>
-            <p className="text-xs text-gray-400">フォロー中</p>
+            <p className="text-xl font-bold text-gray-900">{profile.followingCount}</p>
+            <p className="text-sm text-gray-500 mt-0.5">フォロー中</p>
           </button>
         </div>
       </div>
@@ -137,6 +191,77 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <span className="text-4xl mb-3">📷</span>
           <p className="text-sm">まだ投稿がありません</p>
+        </div>
+      )}
+
+      {/* プロフィール編集モーダル */}
+      {editOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onMouseDown={() => setEditOpen(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <button onClick={() => setEditOpen(false)} className="text-sm text-gray-400 hover:text-gray-600">キャンセル</button>
+              <h2 className="text-sm font-bold text-gray-900">プロフィールを編集</h2>
+              <button
+                onClick={handleEditSave}
+                disabled={editSaving || editAvatarUploading}
+                className="text-sm font-medium text-blue-500 hover:text-blue-700 disabled:text-blue-300"
+              >
+                {editSaving ? '保存中...' : '保存'}
+              </button>
+            </div>
+            <div className="px-4 py-5 space-y-4">
+              {/* アイコン変更 */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-100">
+                  <Image src={editAvatarUrl} alt="アイコン" fill className="object-cover" />
+                  {editAvatarUploading && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="text-white text-xs">...</span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="text-xs text-blue-500 font-medium hover:text-blue-700"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    avatarInputRef.current?.click();
+                  }}
+                >
+                  アイコンを変更
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarFileChange}
+                  style={{ display: 'none' }}
+                />
+              </div>
+              {/* 名前 */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">名前</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+              {/* bio */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">自己紹介</label>
+                <textarea
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  rows={3}
+                  placeholder="旅好きの自己紹介を書こう..."
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
