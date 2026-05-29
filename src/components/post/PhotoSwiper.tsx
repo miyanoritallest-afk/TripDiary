@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 
 type Props = {
   photoUrls: string[];
@@ -50,26 +49,25 @@ export default function PhotoSwiper({ photoUrls, onPhotoChange }: Props) {
   if (photoUrls.length === 0) return null;
 
   return (
-    <div className="relative w-full aspect-square bg-gray-100 overflow-hidden">
+    <div className="relative w-full bg-black">
       {/* スワイプコンテナ */}
       <div
         ref={containerRef}
-        className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth"
+        className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {photoUrls.map((url, i) => (
           <div
             key={i}
             ref={(el) => { itemRefs.current[i] = el; }}
-            className="flex-none w-full h-full snap-start relative"
+            className="flex-none w-full snap-start flex items-center justify-center"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={url}
               alt={`写真 ${i + 1}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 448px) 100vw, 448px"
-              priority={i === 0}
+              className="w-full h-auto block"
+              loading={i === 0 ? 'eager' : 'lazy'}
             />
           </div>
         ))}

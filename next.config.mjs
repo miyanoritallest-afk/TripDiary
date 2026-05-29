@@ -4,7 +4,11 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'picsum.photos' },
       { protocol: 'https', hostname: 'ui-avatars.com' },
+      { protocol: 'https', hostname: 'cdn.discordapp.com' },
       { protocol: 'http', hostname: 'localhost' },
+    ],
+    localPatterns: [
+      { pathname: '/uploads/**' },
     ],
   },
 };

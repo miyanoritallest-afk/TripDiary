@@ -70,6 +70,10 @@ function TimelineContent() {
     setLoading(false);
   };
 
+  const handleDeletePost = (postId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  };
+
   const handleWantToGo = async (post: Post) => {
     await addThreadFromPost(post);
     const toast = document.createElement('div');
@@ -102,7 +106,7 @@ function TimelineContent() {
         <>
           <div>
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} onWantToGo={handleWantToGo} />
+              <PostCard key={post.id} post={post} onWantToGo={handleWantToGo} onDelete={handleDeletePost} />
             ))}
           </div>
           {nextCursor && (

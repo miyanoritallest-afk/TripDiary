@@ -45,9 +45,13 @@ const rightTabs = [
   },
 ];
 
+const HIDDEN_PATHS = ['/login', '/register'];
+
 export default function BottomTab() {
   const pathname = usePathname();
   const router = useRouter();
+
+  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) return null;
 
   const handlePost = () => {
     const base = pathname.startsWith('/following') ? '/following' : '/timeline';
@@ -76,7 +80,7 @@ export default function BottomTab() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t-2 border-blue-200 z-50">
-      <div className="max-w-md mx-auto h-full flex items-center justify-around px-1">
+      <div className="max-w-xl mx-auto h-full flex items-center justify-around px-1">
         {/* 左2タブ */}
         {leftTabs.map(renderTab)}
 

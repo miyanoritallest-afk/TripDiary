@@ -55,7 +55,7 @@ export async function POST(
 
       try {
         const claudeStream = anthropic.messages.stream({
-          model: process.env.NODE_ENV === 'production' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5',
+          model: process.env.NODE_ENV === 'production' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
           max_tokens: 1024,
           system: systemPrompt,
           messages: claudeMessages,
@@ -73,7 +73,16 @@ export async function POST(
             );
           }
         }
+      } catch (err) {
+        // Claude API 失敗時はフォールバック返信をそのまま送る
+        console.error('[Navi] Claude API error:', err);
+        fullContent = 'ごめんなさい、今ちょっと調子が悪いみたい😢 もう一度話しかけてみてください！';
+        controller.enqueue(
+          enc.encode(`data: ${JSON.stringify({ type: 'delta', content: fullContent })}\n\n`),
+        );
+      }
 
+      try {
         const saved = await prisma.naviMessage.create({
           data: { threadId: params.id, role: 'navi', content: fullContent },
         });
@@ -88,11 +97,8 @@ export async function POST(
         );
 
         updateUserPreferences(session.user.id, params.id).catch(() => {});
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Streaming error';
-        controller.enqueue(
-          enc.encode(`data: ${JSON.stringify({ type: 'error', message })}\n\n`),
-        );
+      } catch {
+        // DB保存失敗は無視してストリームは閉じる
       } finally {
         controller.close();
       }
