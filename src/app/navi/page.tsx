@@ -8,9 +8,14 @@ import { useNaviThread } from '@/contexts/NaviThreadContext';
 function NaviContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { threads, createNewThread } = useNaviThread();
+  const { threads, isLoading, fetchThreads, createNewThread } = useNaviThread();
   const [showNewThreadModal, setShowNewThreadModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    fetchThreads();
+  }, [fetchThreads]);
 
   useEffect(() => {
     if (searchParams.get('new') === '1') {
@@ -20,15 +25,20 @@ function NaviContent() {
   }, [searchParams, router]);
 
   const sortedThreads = [...threads].sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   );
 
-  const handleCreateThread = () => {
-    if (!newTitle.trim()) return;
-    const thread = createNewThread(newTitle.trim());
-    setShowNewThreadModal(false);
-    setNewTitle('');
-    router.push(`/navi/${thread.id}`);
+  const handleCreateThread = async () => {
+    if (!newTitle.trim() || creating) return;
+    setCreating(true);
+    try {
+      const thread = await createNewThread(newTitle.trim());
+      setShowNewThreadModal(false);
+      setNewTitle('');
+      router.push(`/navi/${thread.id}`);
+    } finally {
+      setCreating(false);
+    }
   };
 
   const formatDate = (iso: string) => {
@@ -65,7 +75,9 @@ function NaviContent() {
       </header>
 
       {/* スレッド一覧 */}
-      {sortedThreads.length > 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20 text-gray-400 text-sm">読み込み中...</div>
+      ) : sortedThreads.length > 0 ? (
         <div className="divide-y divide-gray-100">
           {sortedThreads.map((thread) => {
             const lastMessage = thread.messages[thread.messages.length - 1];
@@ -135,10 +147,10 @@ function NaviContent() {
               </button>
               <button
                 onClick={handleCreateThread}
-                disabled={!newTitle.trim()}
+                disabled={!newTitle.trim() || creating}
                 className="flex-1 py-3 rounded-xl bg-blue-500 text-white text-sm font-medium disabled:opacity-40"
               >
-                相談を始める
+                {creating ? '作成中...' : '相談を始める'}
               </button>
             </div>
           </div>

@@ -75,8 +75,8 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
     setFollowLoading(false);
   };
 
-  const handleWantToGo = (post: Post) => {
-    addThreadFromPost(post);
+  const handleWantToGo = async (post: Post) => {
+    await addThreadFromPost(post);
     const toast = document.createElement('div');
     toast.textContent = '✈️ ナビちゃんにスレッドを追加したよ！';
     toast.style.cssText = `

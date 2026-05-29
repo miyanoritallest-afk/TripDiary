@@ -1,32 +1,42 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
+import { useState } from 'react';
 
 export default function ChatPage({ params }: { params: { threadId: string } }) {
   const { threadId } = params;
   const router = useRouter();
-  const { threads, sendMessage } = useNaviThread();
+  const { threads, isStreaming, streamingThreadId, streamingContent, sendMessage, fetchThreads } =
+    useNaviThread();
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const thread = threads.find((t) => t.id === threadId);
+  useEffect(() => {
+    if (threads.length === 0) {
+      fetchThreads();
+    }
+  }, [threads.length, fetchThreads]);
 
-  // メッセージ末尾に自動スクロール
+  const thread = threads.find((t) => t.id === threadId);
+  const isThisStreaming = isStreaming && streamingThreadId === threadId;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [thread?.messages]);
+  }, [thread?.messages, streamingContent, isThisStreaming]);
 
-  // ナビちゃんの「入力中...」表示（sendMessageの500ms待ちに合わせる）
-  const handleSend = () => {
-    if (!input.trim() || !thread) return;
+  const handleSend = async () => {
+    if (!input.trim() || sending || isThisStreaming || !thread) return;
     const content = input.trim();
     setInput('');
-    setIsTyping(true);
-    sendMessage(threadId, content);
-    setTimeout(() => setIsTyping(false), 600);
+    setSending(true);
+    try {
+      await sendMessage(threadId, content);
+    } finally {
+      setSending(false);
+    }
   };
 
   if (!thread) {
@@ -39,6 +49,8 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
       </div>
     );
   }
+
+  const isBusy = sending || isThisStreaming;
 
   return (
     <div className="min-h-screen">
@@ -71,14 +83,11 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
             key={msg.id}
             className={`flex items-end gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
           >
-            {/* ナビちゃんアバター */}
             {msg.role === 'navi' && (
               <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-none text-sm">
                 🤖
               </div>
             )}
-
-            {/* バブル */}
             <div
               className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
@@ -91,18 +100,20 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
           </div>
         ))}
 
-        {/* 入力中インジケーター */}
-        {isTyping && (
+        {/* ストリーミング中のナビちゃん返答 */}
+        {isThisStreaming && (
           <div className="flex items-end gap-2">
             <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-none text-sm">
               🤖
             </div>
-            <div className="bg-white border border-gray-100 shadow-sm px-4 py-3 rounded-2xl rounded-bl-md">
-              <div className="flex gap-1 items-center">
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
+            <div className="max-w-[75%] px-3.5 py-2.5 rounded-2xl rounded-bl-md text-sm leading-relaxed bg-white text-gray-800 shadow-sm border border-gray-100 whitespace-pre-wrap">
+              {streamingContent || (
+                <div className="flex gap-1 items-center">
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -124,12 +135,13 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
             }}
             placeholder="メッセージを入力..."
             rows={1}
-            className="flex-1 border border-gray-300 rounded-2xl px-4 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none leading-snug"
+            disabled={isBusy}
+            className="flex-1 border border-gray-300 rounded-2xl px-4 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none leading-snug disabled:opacity-50"
             style={{ maxHeight: '100px', overflowY: 'auto' }}
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isBusy}
             className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white disabled:opacity-40 flex-none transition-opacity"
             aria-label="送信"
           >
