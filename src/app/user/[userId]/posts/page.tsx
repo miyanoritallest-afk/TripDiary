@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import PostCard from '@/components/post/PostCard';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
 import { Post, User } from '@/types';
@@ -16,6 +18,7 @@ type ProfileData = User & {
 function UserPostsContent({ params }: { params: { userId: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const { addThreadFromPost } = useNaviThread();
   const targetPostId = searchParams.get('postId');
 
@@ -23,6 +26,8 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const targetRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +44,7 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
       const profileData = await profileRes.json() as ProfileData;
       const postsData = await postsRes.json() as { posts: Post[] };
       setProfile(profileData);
+      setFollowing(profileData.isFollowing);
       setPosts(postsData.posts.filter((p) => p.user.id === params.userId));
       setLoading(false);
     });
@@ -49,6 +55,25 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
       targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [targetPostId, posts]);
+
+  const handleFollow = async () => {
+    if (followLoading) return;
+    setFollowLoading(true);
+    const next = !following;
+    setFollowing(next);
+
+    const method = next ? 'POST' : 'DELETE';
+    const url = next ? '/api/follows' : `/api/follows/${params.userId}`;
+    const body = next ? JSON.stringify({ followingId: params.userId }) : undefined;
+
+    const res = await fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body,
+    });
+    if (!res.ok) setFollowing(!next);
+    setFollowLoading(false);
+  };
 
   const handleWantToGo = (post: Post) => {
     addThreadFromPost(post);
@@ -80,6 +105,8 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
     );
   }
 
+  const isOwnProfile = session?.user?.id === params.userId;
+
   return (
     <div>
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
@@ -89,9 +116,34 @@ function UserPostsContent({ params }: { params: { userId: string } }) {
               <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
             </svg>
           </button>
-          <h1 className="text-sm font-bold text-gray-900 truncate">{profile.name}の投稿</h1>
+          <h1 className="text-sm font-bold text-gray-900 truncate flex-1">{profile.name}の投稿</h1>
+          {!isOwnProfile && (
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+                following
+                  ? 'border-gray-300 text-gray-600 hover:border-red-300 hover:text-red-500'
+                  : 'border-blue-400 text-blue-500 hover:bg-blue-50'
+              } disabled:opacity-50`}
+            >
+              {following ? 'フォロー中' : 'フォロー'}
+            </button>
+          )}
         </div>
       </header>
+
+      {/* ユーザー情報ヘッダー */}
+      <div className="bg-white px-4 py-4 flex items-center gap-3 border-b border-gray-100">
+        <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 flex-none">
+          <Image src={profile.avatarUrl} alt={profile.name} width={56} height={56} className="w-full h-full object-cover" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-gray-900">{profile.name}</p>
+          {profile.bio && <p className="text-xs text-gray-400 mt-0.5 truncate">{profile.bio}</p>}
+          <p className="text-xs text-gray-400 mt-0.5">{profile.postCount}件の投稿</p>
+        </div>
+      </div>
 
       {posts.length > 0 ? (
         <div>
