@@ -1,79 +1,81 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { NaviThread, Post, ChatMessage } from '@/types';
-import { mockThreads } from '@/lib/mock/threads';
-
-const NAVI_DUMMY_REPLIES = [
-  'いいですね！いつ頃の旅行を考えていますか？✈️',
-  'そのルートいいね！まず〇〇に行って、次に□□がおすすめだよ〜',
-  '予算はどのくらいを考えていますか？💰',
-  '現地のおすすめグルメも教えますよ！何か食べたいものある？🍜',
-  'そのエリアなら電車より車がおすすめかも！レンタカーも安いよ🚗',
-  '紅葉シーズンに行くなら早めに宿を予約しておいた方がいいよ！🍂',
-  'いい選択！現地の穴場スポットも教えようか？🗺️',
-  'わかった！もう少し詳しく教えてくれたら、より具体的なプランを立てられるよ😊',
-];
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { NaviThread, Post } from '@/types';
 
 type NaviThreadContextType = {
   threads: NaviThread[];
-  addThreadFromPost: (post: Post) => NaviThread;
-  createNewThread: (title: string) => NaviThread;
-  sendMessage: (threadId: string, content: string) => void;
+  isLoading: boolean;
+  streamingThreadId: string | null;
+  streamingContent: string | null;
+  isStreaming: boolean;
+  fetchThreads: () => Promise<void>;
+  addThreadFromPost: (post: Post) => Promise<NaviThread>;
+  createNewThread: (title: string) => Promise<NaviThread>;
+  sendMessage: (threadId: string, content: string) => Promise<void>;
 };
 
 const NaviThreadContext = createContext<NaviThreadContextType | null>(null);
 
 export function NaviThreadProvider({ children }: { children: ReactNode }) {
-  const [threads, setThreads] = useState<NaviThread[]>(mockThreads);
+  const [threads, setThreads] = useState<NaviThread[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [streamingThreadId, setStreamingThreadId] = useState<string | null>(null);
+  const [streamingContent, setStreamingContent] = useState<string | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
 
-  const addThreadFromPost = (post: Post): NaviThread => {
+  const fetchThreads = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/navi/threads');
+      if (res.ok) {
+        const data = await res.json() as NaviThread[];
+        setThreads(data);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const addThreadFromPost = async (post: Post): Promise<NaviThread> => {
     const locationName = post.photoPins[0]?.locationName ?? post.hashtags[0] ?? '旅先';
-    const newThread: NaviThread = {
-      id: `thread_${Date.now()}`,
-      title: `${locationName}の旅プラン`,
-      thumbnailUrl: post.photoUrls[0],
-      sourcePostId: post.id,
-      messages: [
-        {
-          id: `msg_${Date.now()}`,
-          role: 'navi',
-          content: `${post.user.name}さんの${locationName}の投稿、気になったんだね！✈️ どんな旅にしたい？ひとり？誰かと一緒？`,
-          createdAt: new Date().toISOString(),
-        },
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setThreads((prev) => [newThread, ...prev]);
-    return newThread;
+    const initialContext = `${post.user.name}さんの「${locationName}」への投稿を見て気になりました！この場所への旅行を計画したいです。`;
+
+    const res = await fetch('/api/navi/threads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: `${locationName}の旅プラン`,
+        sourcePostId: post.id,
+        thumbnailUrl: post.photoUrls[0],
+        initialContext,
+      }),
+    });
+
+    if (!res.ok) throw new Error('Failed to create thread');
+    const thread = await res.json() as NaviThread;
+    setThreads((prev) => [thread, ...prev]);
+    return thread;
   };
 
-  const createNewThread = (title: string): NaviThread => {
-    const newThread: NaviThread = {
-      id: `thread_${Date.now()}`,
-      title,
-      thumbnailUrl: 'https://picsum.photos/seed/new/400/400',
-      sourcePostId: undefined,
-      messages: [
-        {
-          id: `msg_${Date.now()}`,
-          role: 'navi',
-          content: '新しい旅の相談だね！どこ行きたいの？✈️',
-          createdAt: new Date().toISOString(),
-        },
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setThreads((prev) => [newThread, ...prev]);
-    return newThread;
+  const createNewThread = async (title: string): Promise<NaviThread> => {
+    const res = await fetch('/api/navi/threads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    });
+
+    if (!res.ok) throw new Error('Failed to create thread');
+    const thread = await res.json() as NaviThread;
+    setThreads((prev) => [thread, ...prev]);
+    return thread;
   };
 
-  const sendMessage = (threadId: string, content: string) => {
-    const userMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
-      role: 'user',
+  const sendMessage = async (threadId: string, content: string): Promise<void> => {
+    const tempUserMsgId = `temp_user_${Date.now()}`;
+    const userMessage = {
+      id: tempUserMsgId,
+      role: 'user' as const,
       content,
       createdAt: new Date().toISOString(),
     };
@@ -82,31 +84,94 @@ export function NaviThreadProvider({ children }: { children: ReactNode }) {
       prev.map((t) =>
         t.id === threadId
           ? { ...t, messages: [...t.messages, userMessage], updatedAt: new Date().toISOString() }
-          : t
-      )
+          : t,
+      ),
     );
 
-    // 500ms後にナビちゃんのダミー返答を追加
-    setTimeout(() => {
-      const naviReply = NAVI_DUMMY_REPLIES[Math.floor(Math.random() * NAVI_DUMMY_REPLIES.length)];
-      const naviMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
-        role: 'navi',
-        content: naviReply,
-        createdAt: new Date().toISOString(),
-      };
-      setThreads((prev) =>
-        prev.map((t) =>
-          t.id === threadId
-            ? { ...t, messages: [...t.messages, naviMessage], updatedAt: new Date().toISOString() }
-            : t
-        )
-      );
-    }, 500);
+    setStreamingThreadId(threadId);
+    setStreamingContent('');
+    setIsStreaming(true);
+
+    const res = await fetch(`/api/navi/threads/${threadId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+
+    if (!res.ok || !res.body) {
+      setIsStreaming(false);
+      setStreamingThreadId(null);
+      setStreamingContent(null);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value, { stream: true });
+        const lines = text.split('\n');
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const event = JSON.parse(jsonStr) as
+              | { type: 'delta'; content: string }
+              | { type: 'done'; messageId: string }
+              | { type: 'error'; message: string };
+
+            if (event.type === 'delta') {
+              accumulated += event.content;
+              setStreamingContent(accumulated);
+            } else if (event.type === 'done') {
+              const naviMessage = {
+                id: event.messageId,
+                role: 'navi' as const,
+                content: accumulated,
+                createdAt: new Date().toISOString(),
+              };
+              setThreads((prev) =>
+                prev.map((t) =>
+                  t.id === threadId
+                    ? { ...t, messages: [...t.messages, naviMessage], updatedAt: new Date().toISOString() }
+                    : t,
+                ),
+              );
+            }
+          } catch {
+            // malformed JSON line — skip
+          }
+        }
+      }
+    } finally {
+      setIsStreaming(false);
+      setStreamingThreadId(null);
+      setStreamingContent(null);
+    }
   };
 
   return (
-    <NaviThreadContext.Provider value={{ threads, addThreadFromPost, createNewThread, sendMessage }}>
+    <NaviThreadContext.Provider
+      value={{
+        threads,
+        isLoading,
+        streamingThreadId,
+        streamingContent,
+        isStreaming,
+        fetchThreads,
+        addThreadFromPost,
+        createNewThread,
+        sendMessage,
+      }}
+    >
       {children}
     </NaviThreadContext.Provider>
   );
