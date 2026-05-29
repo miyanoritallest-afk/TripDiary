@@ -3,7 +3,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { PhotoPin } from '@/types';
+import type { PhotoPin } from '@/types';
 
 // Leafletのデフォルトアイコン問題を修正
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

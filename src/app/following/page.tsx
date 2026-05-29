@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import PostCard from '@/components/post/PostCard';
 import PostCreateModal from '@/components/post/PostCreateModal';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
-import { Post } from '@/types';
+import type { Post } from '@/types';
 
 function FollowingContent() {
   const { addThreadFromPost } = useNaviThread();

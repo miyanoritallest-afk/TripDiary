@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Post } from '@/types';
+import type { Post } from '@/types';
 
 type Props = {
   post: Post;
