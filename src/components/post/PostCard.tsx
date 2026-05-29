@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Post } from '@/types';
+import type { Post } from '@/types';
 import PhotoSwiper from './PhotoSwiper';
 import LocationBadge from './LocationBadge';
 import ActionButtons from './ActionButtons';

@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import PostCard from '@/components/post/PostCard';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
-import { Post, User } from '@/types';
+import type { Post, User } from '@/types';
 
 type ProfileData = User & {
   bio: string | null;

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Post, User } from '@/types';
+import type { Post, User } from '@/types';
 
 type ProfileData = User & {
   bio: string | null;

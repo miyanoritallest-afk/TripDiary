@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { NaviThread, Post } from '@/types';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
+import type { NaviThread, Post } from '@/types';
 
 type NaviThreadContextType = {
   threads: NaviThread[];
