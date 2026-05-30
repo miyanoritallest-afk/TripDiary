@@ -30,6 +30,7 @@ resource "aws_instance" "app" {
     anthropic_api_key = var.anthropic_api_key
     s3_bucket         = aws_s3_bucket.photos.bucket
     aws_region        = var.aws_region
+    github_repo_url   = var.github_repo_url
   })
 
   # AMI やインスタンスタイプ変更時のみ再作成（user_data 更新では再作成しない）

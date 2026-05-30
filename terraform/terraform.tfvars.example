@@ -21,3 +21,6 @@ ssh_public_key = "ssh-rsa AAAA..."
 
 # SSH 接続を許可する自分の IP（curl ifconfig.me で確認）
 my_ip_cidr = "xxx.xxx.xxx.xxx/32"
+
+# GitHub リポジトリ URL（デフォルト値があるので省略可）
+# github_repo_url = "https://github.com/miyanoritallest-afk/TripDiary.git"

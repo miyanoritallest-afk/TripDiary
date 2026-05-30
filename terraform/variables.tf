@@ -61,3 +61,11 @@ variable "my_ip_cidr" {
   description = "SSH 接続を許可する自分の IP（例: 203.0.113.42/32）"
   type        = string
 }
+
+# --- App repository ---
+
+variable "github_repo_url" {
+  description = "GitHub リポジトリの HTTPS URL（例: https://github.com/user/repo.git）"
+  type        = string
+  default     = "https://github.com/miyanoritallest-afk/TripDiary.git"
+}
