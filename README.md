@@ -1,16 +1,16 @@
-# TripDiary
+# Navilog
 
-旅行管理SNS風アプリ。他ユーザーの旅行投稿にいいね・「行きたい！」を押すと、AIキャラクター**ナビちゃん**との会話スレッドが生成され、旅行プランを相談できます。
+旅行体験を写真・地図ピンとともに共有できるSNS風アプリ。他ユーザーの投稿に「行きたい！」を押すと、AIキャラクター**ナビちゃん（🦜）**との会話スレッドが自動生成され、旅行プランを気軽に相談できます。
 
 ## 主な機能
 
 - **タイムライン** — 全ユーザーの旅行投稿を閲覧（全体 / フォロー中の切り替え）
-- **投稿** — 写真最大6枚・本文・ハッシュタグ・地図ピン付きで旅行を投稿
-- **投稿カード** — 写真スワイプ・地名バッジ・地図ピン連動表示
+- **投稿** — 写真最大6枚・本文・ハッシュタグ・地図ピン付きで旅行を投稿（モーダル形式）
+- **投稿カード** — 写真スワイプ・地名バッジ・地図の開閉表示
 - **いいね / 行きたい！** — 投稿へのリアクション
 - **フォロー** — ユーザーをフォロー・フォロー中投稿のみ表示
-- **ナビちゃん** — Claude API搭載のAI旅行プランナー（「行きたい！」からスレッド自動生成・ユーザーの好み記憶）
-- **プロフィール** — アバター・自己紹介・投稿一覧・フォロー数表示
+- **ナビちゃん** — Claude API搭載のAI旅行プランナー（「行きたい！」からスレッド自動生成・ユーザーの好み記憶・ストリーミング応答）
+- **プロフィール** — アバター・自己紹介・投稿グリッド・フォロー数表示・インライン編集
 
 ## 技術スタック
 
@@ -19,14 +19,15 @@
 | 言語 | TypeScript 5.x |
 | フレームワーク | Next.js 14（App Router） |
 | スタイリング | Tailwind CSS 3.x |
+| アニメーション | Framer Motion 12.x |
 | 認証 | NextAuth.js 4.x（メール＋パスワード / JWT） |
 | ORM | Prisma 5.x |
-| データベース | PostgreSQL 15（開発: Docker / 本番: AWS RDS） |
+| データベース | PostgreSQL（開発: Docker / 本番: AWS RDS） |
 | ストレージ | ローカルファイル（開発） / AWS S3（本番） |
 | 地図 | Leaflet.js + React Leaflet + OpenStreetMap |
 | ジオコーディング | Nominatim（OpenStreetMap） |
-| AI | Claude API（開発: Haiku / 本番: Sonnet） |
-| ホスティング | AWS EC2 |
+| AI | Claude API（開発: claude-haiku-4-5 / 本番: claude-sonnet-4-6） |
+| ホスティング | AWS EC2（Terraform で構成済み） |
 
 ## 環境構築（開発）
 
@@ -55,7 +56,7 @@ npm install
 `.env.local` をプロジェクトルートに作成し、以下を記入してください。
 
 ```env
-# Database (Docker)
+# Database
 DATABASE_URL="postgresql://postgres:password@localhost:5432/tripdiary"
 
 # NextAuth
@@ -65,7 +66,7 @@ NEXTAUTH_URL="http://localhost:3000"
 # Anthropic Claude API
 ANTHROPIC_API_KEY="sk-ant-..."
 
-# Storage (local: 開発用, s3: 本番用)
+# Storage: "local"（開発）または "s3"（本番）
 STORAGE_PROVIDER=local
 ```
 
@@ -97,6 +98,15 @@ npx prisma studio
 
 [http://localhost:5555](http://localhost:5555) でテーブルの中身をGUI確認できます。
 
+## 品質チェック
+
+```bash
+npm run typecheck   # TypeScript型チェック
+npm run lint        # ESLint
+npm run test        # Vitest（ユニットテスト）
+npm run check       # 上記3つを一括実行
+```
+
 ## プロジェクト構成
 
 ```
@@ -107,34 +117,44 @@ src/
 │   │   ├── posts/            # 投稿CRUD・いいね・行きたい！
 │   │   ├── follows/          # フォロー
 │   │   ├── profiles/         # プロフィール
-│   │   ├── navi/             # ナビちゃん（Claude API）
+│   │   ├── navi/             # ナビちゃん（Claude API・スレッド・メッセージ）
 │   │   ├── photos/           # 写真アップロード
-│   │   └── geocoding/        # ジオコーディング
+│   │   └── geocoding/        # ジオコーディング（Nominatim）
 │   ├── login/                # ログイン画面
 │   ├── register/             # 会員登録画面
 │   ├── timeline/             # タイムライン画面
 │   ├── following/            # フォロー中タイムライン
-│   ├── profile/              # プロフィール画面
-│   ├── navi/                 # ナビちゃん画面
-│   └── user/[userId]/        # ユーザー投稿詳細
+│   ├── profile/              # 自分のプロフィール画面
+│   ├── navi/                 # ナビちゃんスレッド一覧・チャット画面
+│   └── user/[userId]/        # 他ユーザーの投稿一覧
 ├── components/
-│   ├── layout/               # レイアウト（BottomTab等）
-│   ├── post/                 # 投稿関連コンポーネント
-│   └── map/                  # 地図コンポーネント
-├── contexts/                 # React Context（ナビちゃん状態管理）
+│   ├── layout/               # BottomTab・SessionProvider
+│   ├── post/                 # PostCard・PhotoSwiper・PostCreateModal 等
+│   └── map/                  # PostMap（Leaflet）
+├── contexts/                 # NaviThreadContext（ストリーミング状態管理）
 ├── lib/
 │   ├── db.ts                 # PrismaClient
 │   ├── auth.ts               # NextAuth設定
-│   └── mock/                 # モックデータ（プロトタイプ用・後に削除）
-└── types/                    # 型定義
+│   ├── claude.ts             # Anthropic SDK・システムプロンプト
+│   ├── storage.ts            # ファイルアップロード（ローカル / S3切り替え）
+│   └── mappers.ts            # DB→レスポンス型変換
+└── types/                    # 型定義（Post・User・NaviThread 等）
 prisma/
 └── schema.prisma             # DBスキーマ（全10テーブル）
+terraform/                    # AWSインフラ構成（EC2・RDS・S3・VPC・IAM）
 docker-compose.yml            # PostgreSQL開発環境
+screenshots/                  # 動作確認スクリーンショット
+docs/                         # 設計ドキュメント
 ```
 
-## 開発ロードマップ
+## ドキュメント
 
-- [x] Phase 1：基盤構築（Docker / PostgreSQL / Prisma / NextAuth / 認証画面）
-- [ ] Phase 2：投稿CRUD（投稿API / 写真アップロード / タイムラインAPI連携）
-- [ ] Phase 3：リアクション・フォロー（いいね / 行きたい！/ フォロー API連携）
-- [ ] Phase 4：ナビちゃん（Claude API / ストリーミング / 好み記憶）
+| ドキュメント | 内容 |
+|-------------|------|
+| [要件定義書](docs/requirements.md) | システム概要・機能スコープ |
+| [機能一覧・機能定義書](docs/features.md) | 機能一覧・ユースケース詳細 |
+| [画面設計書](docs/screens.md) | 画面一覧・ワイヤーフレーム・画面遷移図 |
+| [データモデル・ER図](docs/data-model.md) | テーブル定義・エンティティ関係図 |
+| [技術スタック](docs/tech-stack.md) | 使用技術・バージョン・採用理由 |
+| [インフラ構成](docs/infrastructure.md) | AWS構成・Terraform |
+| [非機能要件](docs/non-functional.md) | パフォーマンス・セキュリティ・対応環境 |

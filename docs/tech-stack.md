@@ -1,7 +1,7 @@
 # TripDiary 技術スタック
 
 作成日: 2026-05-28
-最終更新日: 2026-05-28
+最終更新日: 2026-05-30
 
 ---
 
@@ -12,10 +12,11 @@
 | 言語 | TypeScript | 5.x |
 | フレームワーク | Next.js | 14.x（App Router） |
 | スタイリング | Tailwind CSS | 3.x |
+| アニメーション | Framer Motion | 12.x |
 | 認証 | NextAuth.js | 4.x |
 | ORM | Prisma | 5.x |
 | データベース | PostgreSQL（AWS RDS） | 15.x |
-| ストレージ | AWS S3 | — |
+| ストレージ | AWS S3（本番）/ ローカルファイルシステム（開発） | — |
 | 地図 | Leaflet.js + React Leaflet | 1.9.x / 4.x |
 | 地名検索 | Nominatim（OpenStreetMap） | — |
 | AI | Claude API（Anthropic SDK） | 最新 |
@@ -45,13 +46,16 @@ TypeScriptネイティブのORM。スキーマファイルからDB定義・型�
 マネージドなPostgreSQLサービス。EC2と同一VPC内に配置することで安全に接続できる。自動バックアップ・フェイルオーバー機能を持ち、本番運用に適している。
 
 #### AWS S3
-スケーラブルなオブジェクトストレージ。投稿写真・アバター画像を保存し、公開URLまたは署名付きURLで配信する。IAMロールでアクセス制御を行い、アクセスキーのコード埋め込みを不要にする。
+スケーラブルなオブジェクトストレージ。投稿写真・アバター画像を保存し、公開URLで配信する。IAMロールでアクセス制御を行い、アクセスキーのコード埋め込みを不要にする。ローカル開発時は `public/uploads/` へのローカルファイルシステム保存に切り替わり（`STORAGE_PROVIDER=local`）、本番では `STORAGE_PROVIDER=s3` に設定する。
 
 #### Leaflet.js + React Leaflet
 オープンソースの地図ライブラリ。OpenStreetMapと組み合わせることで無料で地図・ピン表示を実現できる。React Leafletにより宣言的な記述が可能。
 
 #### Nominatim（OpenStreetMap）
 地名から緯度経度を検索できる無料のジオコーディングAPI。投稿時の場所名入力から座標を取得するために使用する。
+
+#### Framer Motion
+Reactアニメーションライブラリ。投稿カードのスクロールアニメーション・モーダルの出現アニメーション・BottomTabのアクティブインジケーターアニメーション等に使用する。
 
 #### Claude API（Anthropic SDK）
 ナビちゃんの会話エンジン。旅行プランに関する自然な会話・プラン提案が得意。開発時はHaiku（コスト効率重視）、本番ではSonnet（品質重視）を使い分ける。
@@ -96,8 +100,9 @@ TypeScriptネイティブのORM。スキーマファイルからDB定義・型�
 | `DATABASE_URL` | PostgreSQL接続URL（ローカルは `postgresql://...@localhost:5432/tripdiary`） |
 | `NEXTAUTH_SECRET` | NextAuth.jsセッション署名シークレット |
 | `NEXTAUTH_URL` | アプリのベースURL（ローカルは `http://localhost:3000`） |
-| `AWS_REGION` | S3バケットのリージョン（例: `ap-northeast-1`） |
-| `AWS_S3_BUCKET_NAME` | S3バケット名 |
+| `STORAGE_PROVIDER` | ストレージ切り替え（`local`：ローカル保存 / `s3`：AWS S3。デフォルトは `local`） |
+| `AWS_REGION` | S3バケットのリージョン（例: `ap-northeast-1`）。`STORAGE_PROVIDER=s3` の場合のみ必要 |
+| `AWS_S3_BUCKET_NAME` | S3バケット名。`STORAGE_PROVIDER=s3` の場合のみ必要 |
 | `AWS_ACCESS_KEY_ID` | AWSアクセスキー（ローカル開発用。EC2本番ではIAMロールで不要） |
 | `AWS_SECRET_ACCESS_KEY` | AWSシークレットキー（ローカル開発用。EC2本番ではIAMロールで不要） |
 | `ANTHROPIC_API_KEY` | Claude APIキー |

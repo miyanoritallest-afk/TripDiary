@@ -1,7 +1,7 @@
 # TripDiary インフラ構成
 
 作成日: 2026-05-28
-最終更新日: 2026-05-28
+最終更新日: 2026-05-30
 
 ---
 
@@ -16,7 +16,7 @@
 | AI | Anthropic Claude API |
 | 地図・ジオコーディング | OpenStreetMap / Nominatim（外部サービス） |
 
-> 環境構築は今後のフェーズで実施予定。本ドキュメントは設計方針の記録。
+> Terraform コード（`terraform/` ディレクトリ）が追加済み。EC2・RDS・S3・VPC・IAM・セキュリティグループの構成がコード化されている。実際のプロビジョニングは `terraform apply` で実施する。
 
 ---
 
@@ -150,10 +150,24 @@ tripdiary-photos/
 
 ---
 
-## 7. 今後の構築予定（未実施）
+## 7. Terraform 構成
 
-- [ ] EC2インスタンス作成・Next.js環境セットアップ
-- [ ] RDSインスタンス作成・Prismaマイグレーション実行
-- [ ] S3バケット作成・IAMロール設定
-- [ ] EC2とRDSをVPCで接続
+`terraform/` ディレクトリに以下のリソース定義が追加済み。
+
+| ファイル | 内容 |
+|---------|------|
+| `main.tf` | プロバイダー設定 |
+| `vpc.tf` | VPC・サブネット・インターネットゲートウェイ |
+| `security.tf` | セキュリティグループ |
+| `ec2.tf` | EC2インスタンス |
+| `rds.tf` | RDS（PostgreSQL）インスタンス |
+| `s3.tf` | S3バケット |
+| `iam.tf` | IAMロール・ポリシー |
+| `variables.tf` | 入力変数定義 |
+| `outputs.tf` | 出力値定義 |
+
+### 残タスク
+
+- [ ] `terraform apply` による実環境プロビジョニング
+- [ ] EC2上でのNext.js環境セットアップ・Prismaマイグレーション実行
 - [ ] 独自ドメイン設定（任意）
