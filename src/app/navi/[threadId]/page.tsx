@@ -128,8 +128,8 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
 
       {/* 削除確認ダイアログ */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center">
-          <div className="bg-white w-full max-w-md rounded-t-2xl px-5 py-6 space-y-4">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
+          <div className="bg-white w-full max-w-sm rounded-2xl px-5 py-6 space-y-4">
             <p className="text-base font-semibold text-gray-900 text-center">スレッドを削除しますか？</p>
             <p className="text-sm text-gray-500 text-center">「{thread.title}」のすべての会話が削除されます。この操作は取り消せません。</p>
             <div className="flex flex-col gap-2 pt-1">
