@@ -87,7 +87,7 @@ function FollowingContent() {
     <div>
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="flex items-center justify-between px-4 h-12">
-          <h1 className="text-lg font-bold text-gray-900">TripDiary</h1>
+          <h1 className="text-xl font-black text-ink-deep" style={{ fontFamily: 'var(--font-zen-maru)' }}>Navilog</h1>
         </div>
       </header>
 

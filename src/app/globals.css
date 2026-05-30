@@ -3,21 +3,52 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --background: #F5EFE0;
+  --foreground: #1C1814;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --journey-ember: #E8621A;
+  --journey-ember-dark: #C44D10;
+  --journey-ember-glow: #FFF0E6;
+
+  --compass-teal: #1B6B6E;
+  --compass-teal-light: #E4F4F4;
+  --compass-teal-mid: #2E9FA4;
+
+  --parchment: #F5EFE0;
+  --parchment-dark: #EDE2C8;
+  --sand: #D4A96A;
+
+  --heart-coral: #E84D6A;
+  --wantgo-saffron: #F2A827;
+
+  --ink-deep: #1C1814;
+  --ink-mid: #5C4E3A;
+  --ink-light: #9C8B72;
+
+  --nav-bg: #1C1814;
+  --nav-active: #E8621A;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(212, 169, 106, 0.10) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(27, 107, 110, 0.07) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+main {
+  position: relative;
+  z-index: 1;
 }
 
 @layer utilities {

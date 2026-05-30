@@ -80,7 +80,7 @@ function TimelineContent() {
     toast.textContent = '✈️ ナビちゃんにスレッドを追加したよ！';
     toast.style.cssText = `
       position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-      background: #1d4ed8; color: white; padding: 10px 20px; border-radius: 24px;
+      background: #1B6B6E; color: white; padding: 10px 20px; border-radius: 24px;
       font-size: 13px; z-index: 9999; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     `;
     document.body.appendChild(toast);
@@ -89,9 +89,9 @@ function TimelineContent() {
 
   return (
     <div>
-      <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
+      <header className="sticky top-0 bg-white border-b border-parchment-dark z-40">
         <div className="flex items-center justify-between px-4 h-12">
-          <h1 className="text-lg font-bold text-gray-900">TripDiary</h1>
+          <h1 className="text-xl font-black text-ink-deep" style={{ fontFamily: 'var(--font-zen-maru)' }}>Navilog</h1>
         </div>
       </header>
 
@@ -114,7 +114,7 @@ function TimelineContent() {
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="px-6 py-2 text-sm text-blue-500 border border-blue-300 rounded-full hover:bg-blue-50 disabled:opacity-50"
+                className="px-6 py-2 text-sm text-ember border border-ember/40 rounded-full hover:bg-ember-glow disabled:opacity-50 tracking-wide"
               >
                 {loadingMore ? '読み込み中...' : 'もっと見る'}
               </button>

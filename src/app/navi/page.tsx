@@ -59,8 +59,8 @@ function NaviContent() {
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🤖</span>
-            <h1 className="text-lg font-bold text-gray-900">ナビちゃん</h1>
+            <span className="text-xl">🦜</span>
+            <h1 className="text-lg font-bold text-ink-deep" style={{ fontFamily: 'var(--font-zen-maru)' }}>ナビちゃん</h1>
           </div>
           <button
             onClick={() => setShowNewThreadModal(true)}
@@ -103,7 +103,7 @@ function NaviContent() {
                   </div>
                   {lastMessage && (
                     <p className="text-xs text-gray-500 mt-0.5 truncate">
-                      {lastMessage.role === 'navi' ? '🤖 ' : ''}
+                      {lastMessage.role === 'navi' ? '🦜 ' : ''}
                       {lastMessage.content}
                     </p>
                   )}

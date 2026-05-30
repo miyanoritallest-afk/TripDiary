@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 type PhotoEntry = {
   file: File;
@@ -180,18 +181,22 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
         className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
         onMouseDown={onClose}
       >
-        <div
+        <motion.div
+          initial={{ y: '100%', opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '100%', opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 35 }}
           className="w-full max-w-md bg-white rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
-          onMouseDown={(e) => e.stopPropagation()}
+          onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
         >
           {/* ヘッダー */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-sm">キャンセル</button>
-            <h2 className="text-sm font-bold text-gray-900">新しい投稿</h2>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-parchment-dark bg-parchment">
+            <button onClick={onClose} className="text-ink-light hover:text-ink-mid text-sm">キャンセル</button>
+            <h2 className="text-sm font-bold text-ink-deep tracking-tight">旅を記録する</h2>
             <button
               onClick={handleSubmit}
               disabled={submitting || uploading}
-              className="text-sm font-medium text-blue-500 hover:text-blue-700 disabled:text-blue-300"
+              className="text-sm font-semibold text-ember hover:text-ember-dark disabled:opacity-40 tracking-wide"
             >
               {submitting ? '投稿中...' : '投稿する'}
             </button>
@@ -201,8 +206,8 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
             {/* 写真エリア */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">写真（最大6枚）</span>
-                <span className="text-xs text-gray-400">{photos.length}/6</span>
+                <span className="text-xs text-ink-mid">写真（最大6枚）</span>
+                <span className="text-xs text-ink-light">{photos.length}/6</span>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -253,7 +258,7 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
                 {photos.length < 6 && (
                   <button
                     type="button"
-                    className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-colors"
+                    className="w-20 h-20 border-2 border-dashed border-sand rounded-lg flex flex-col items-center justify-center text-sand hover:border-ember hover:text-ember transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -285,7 +290,7 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="旅の感想を書こう..."
                 rows={4}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none"
+                className="w-full border border-parchment-dark rounded-xl px-4 py-3 text-sm text-ink-mid outline-none focus:border-ember focus:ring-2 focus:ring-ember/15 resize-none bg-white"
               />
             </div>
 
@@ -298,14 +303,14 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
                   onChange={(e) => setHashtagInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addHashtag())}
                   placeholder="#タグを追加"
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
+                  className="flex-1 border border-parchment-dark rounded-lg px-3 py-2 text-sm text-ink-mid outline-none focus:border-ember focus:ring-1 focus:ring-ember/20"
                 />
                 <button
                   onClick={addHashtag}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     hashtagInput.trim()
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
-                      : 'bg-gray-100 text-gray-400 cursor-default'
+                      ? 'bg-ember text-white hover:bg-ember-dark shadow-sm'
+                      : 'bg-parchment-dark text-ink-light cursor-default'
                   }`}
                 >
                   追加
@@ -316,10 +321,10 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
                   {hashtags.map((tag) => (
                     <span
                       key={tag}
-                      className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full"
+                      className="flex items-center gap-1 text-xs bg-ember-glow text-ember px-2 py-1 rounded-full"
                     >
                       #{tag}
-                      <button onClick={() => removeHashtag(tag)} className="text-blue-400 hover:text-blue-600">×</button>
+                      <button onClick={() => removeHashtag(tag)} className="text-ember/60 hover:text-ember">×</button>
                     </span>
                   ))}
                 </div>
@@ -328,7 +333,7 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
 
             {error && <p className="text-red-500 text-xs">{error}</p>}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ピン設定モーダル（別レイヤー） */}
@@ -341,9 +346,9 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
             className="w-full max-w-sm bg-white rounded-2xl overflow-hidden"
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <button onClick={closePinModal} className="text-sm text-gray-400 hover:text-gray-600">キャンセル</button>
-              <h3 className="text-sm font-bold text-gray-900">📍 場所を設定</h3>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-parchment-dark bg-parchment">
+              <button onClick={closePinModal} className="text-sm text-ink-light hover:text-ink-mid">キャンセル</button>
+              <h3 className="text-sm font-bold text-ink-deep tracking-tight">📍 場所を設定</h3>
               <div className="w-12" />
             </div>
             <div className="px-4 py-4 space-y-3">
@@ -354,14 +359,14 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
                   onChange={(e) => setPinQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchPin())}
                   placeholder="地名を入力（例: 京都、富士山）"
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
+                  className="flex-1 border border-parchment-dark rounded-lg px-3 py-2 text-sm text-ink-mid outline-none focus:border-teal focus:ring-1 focus:ring-teal/20"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={searchPin}
                   disabled={pinSearching}
-                  className="px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 disabled:bg-blue-300"
+                  className="px-3 py-2 bg-teal text-white rounded-lg text-sm hover:bg-teal-mid disabled:opacity-50"
                 >
                   {pinSearching ? '...' : '検索'}
                 </button>
@@ -374,7 +379,7 @@ export default function PostCreateModal({ onClose, onSuccess }: Props) {
                       key={i}
                       type="button"
                       onClick={() => selectPin(r)}
-                      className="w-full text-left px-3 py-2.5 text-xs text-gray-700 hover:bg-blue-50 transition-colors"
+                      className="w-full text-left px-3 py-2.5 text-xs text-ink-mid hover:bg-teal-light transition-colors"
                     >
                       <span className="font-medium text-gray-900 block truncate">{r.name.split(',')[0]}</span>
                       <span className="text-gray-400 truncate block">{r.name}</span>

@@ -34,14 +34,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm p-8">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">TripDiary</h1>
-        <p className="text-center text-gray-500 text-sm mb-8">旅の思い出をシェアしよう</p>
+    <div className="min-h-screen bg-parchment flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-white rounded-card shadow-card border border-parchment-dark p-8">
+        <h1 className="text-3xl font-black text-center text-ink-deep tracking-tighter mb-1">TripDiary</h1>
+        <p className="text-center text-ink-light text-sm mb-8 tracking-wide">旅をシェアする</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-ink-mid mb-1">
               メールアドレス
             </label>
             <input
@@ -49,13 +49,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-parchment-dark rounded-lg px-3 py-2 text-sm text-ink-deep focus:outline-none focus:ring-2 focus:ring-ember/40 focus:border-ember"
               placeholder="example@email.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-ink-mid mb-1">
               パスワード
             </label>
             <input
@@ -63,27 +63,28 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-parchment-dark rounded-lg px-3 py-2 text-sm text-ink-deep focus:outline-none focus:ring-2 focus:ring-ember/40 focus:border-ember"
               placeholder="8文字以上"
             />
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm">{error}</p>
+            <p className="text-coral text-sm">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-medium py-2 rounded-lg text-sm transition-colors"
+            className="w-full bg-ember hover:bg-ember-dark disabled:opacity-50 text-white font-semibold py-2 rounded-lg text-sm transition-colors tracking-wide"
+            style={{ boxShadow: '0 4px 16px rgba(232,98,26,0.30)' }}
           >
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-ink-light mt-6">
           アカウントをお持ちでない方は{' '}
-          <Link href="/register" className="text-blue-500 hover:underline">
+          <Link href="/register" className="text-ember hover:underline font-medium">
             新規登録
           </Link>
         </p>
