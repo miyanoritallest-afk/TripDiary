@@ -1,7 +1,7 @@
 # TripDiary データモデル・ER図
 
 作成日: 2026-05-28
-最終更新日: 2026-05-28
+最終更新日: 2026-05-30
 
 ---
 
@@ -11,7 +11,7 @@
 |-----------|------|
 | users | ユーザー情報（認証情報・プロフィール） |
 | posts | 旅行投稿（本文・ハッシュタグ） |
-| photos | 投稿に添付された写真（Supabase Storage URL・表示順） |
+| photos | 投稿に添付された写真（画像URL・表示順） |
 | pins | 写真に紐付く地図ピン（地名・緯度・経度） |
 | likes | いいね（ユーザーと投稿の紐付け） |
 | want_to_go | 行きたい！（ユーザーと投稿の紐付け） |
@@ -32,7 +32,7 @@ erDiagram
         VARCHAR password_hash "ハッシュ化パスワード"
         VARCHAR username "ユーザー名"
         TEXT bio "自己紹介"
-        VARCHAR avatar_url "アバター画像URL（Supabase Storage）"
+        VARCHAR avatar_url "アバター画像URL（S3またはローカルパス）"
         TIMESTAMP created_at "作成日時"
         TIMESTAMP updated_at "更新日時"
     }
@@ -49,7 +49,7 @@ erDiagram
     photos {
         UUID id PK "主キー"
         UUID post_id FK "投稿（posts.id）"
-        VARCHAR image_url "画像URL（Supabase Storage）"
+        VARCHAR image_url "画像URL（S3またはローカルパス）"
         SMALLINT display_order "表示順（1〜6）"
         TIMESTAMP created_at "作成日時"
     }
@@ -154,7 +154,7 @@ erDiagram
 | password_hash | VARCHAR(255) | NOT NULL | BCryptハッシュ化パスワード |
 | username | VARCHAR(50) | NOT NULL | ユーザー名 |
 | bio | TEXT | | 自己紹介（最大160文字） |
-| avatar_url | VARCHAR(500) | | アバター画像のSupabase Storage URL |
+| avatar_url | VARCHAR(500) | | アバター画像のURL（S3またはローカルパス） |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 作成日時 |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 更新日時 |
 
@@ -181,7 +181,7 @@ erDiagram
 |---------|-----|------|------|
 | id | UUID | PK, DEFAULT gen_random_uuid() | 主キー |
 | post_id | UUID | NOT NULL, FK → posts.id | 紐付く投稿 |
-| image_url | VARCHAR(500) | NOT NULL | 画像のSupabase Storage URL |
+| image_url | VARCHAR(500) | NOT NULL | 画像のURL（S3またはローカルパス） |
 | display_order | SMALLINT | NOT NULL, CHECK(1〜6) | 表示順 |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 作成日時 |
 
@@ -193,7 +193,7 @@ erDiagram
 |---------|-----|------|------|
 | id | UUID | PK, DEFAULT gen_random_uuid() | 主キー |
 | photo_id | UUID | NOT NULL, UNIQUE, FK → photos.id | 紐付く写真（1写真に1ピンのみ） |
-| location_name | VARCHAR(100) | NOT NULL | 地名表示テキスト（例: 京都・嵐山） |
+| location_name | VARCHAR(100) | | 地名表示テキスト（例: 京都・嵐山）（任意） |
 | latitude | DECIMAL(9,6) | NOT NULL | 緯度 |
 | longitude | DECIMAL(9,6) | NOT NULL | 経度 |
 
@@ -271,5 +271,5 @@ erDiagram
 |---------|-----|------|------|
 | id | UUID | PK, DEFAULT gen_random_uuid() | 主キー |
 | user_id | UUID | NOT NULL, UNIQUE, FK → users.id | ユーザー（1対1） |
-| summary | TEXT | NOT NULL | 旅行好みサマリー（Claude APIが会話から生成） |
+| summary | TEXT | | 旅行好みサマリー（Claude APIが会話から生成）（任意） |
 | updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | 更新日時 |
