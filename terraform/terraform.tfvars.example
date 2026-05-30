@@ -1,0 +1,23 @@
+# このファイルをコピーして terraform.tfvars を作成してください
+# cp terraform.tfvars.example terraform.tfvars
+#
+# terraform.tfvars は .gitignore で除外されています。
+# 絶対に git にコミットしないでください。
+
+# AWS リージョン（変更不要）
+aws_region = "ap-northeast-1"
+
+# PostgreSQL パスワード（英数字記号で 12 文字以上推奨）
+db_password = "ChangeMe_StrongPassword123!"
+
+# NextAuth.js シークレット（openssl rand -base64 32 で生成）
+nextauth_secret = "your-nextauth-secret-here"
+
+# Anthropic API キー（https://console.anthropic.com で取得）
+anthropic_api_key = "sk-ant-api03-..."
+
+# SSH 公開鍵の内容（cat ~/.ssh/id_rsa.pub の出力をそのまま貼り付け）
+ssh_public_key = "ssh-rsa AAAA..."
+
+# SSH 接続を許可する自分の IP（curl ifconfig.me で確認）
+my_ip_cidr = "xxx.xxx.xxx.xxx/32"
