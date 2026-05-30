@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Zen_Maru_Gothic } from "next/font/google";
 import "./globals.css";
 import BottomTab from "@/components/layout/BottomTab";
 import { NaviThreadProvider } from "@/contexts/NaviThreadContext";
@@ -15,10 +16,15 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+const zenMaruGothic = Zen_Maru_Gothic({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-zen-maru",
+});
 
 export const metadata: Metadata = {
-  title: "TripDiary",
-  description: "旅行管理SNS風アプリ",
+  title: "Navilog",
+  description: "旅をシェアする、AIと旅する",
 };
 
 export default function RootLayout({
@@ -28,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 overflow-y-scroll`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} antialiased bg-parchment overflow-y-scroll`}>
         <SessionProviderWrapper>
           <NaviThreadProvider>
             <main className="max-w-xl mx-auto min-h-screen pb-16">

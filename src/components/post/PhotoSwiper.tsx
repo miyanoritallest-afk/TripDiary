@@ -77,7 +77,7 @@ export default function PhotoSwiper({ photoUrls, onPhotoChange }: Props) {
       {currentIndex > 0 && (
         <button
           onClick={() => scrollTo(currentIndex - 1)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/40 rounded-full flex items-center justify-center text-white"
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-ink-deep/60 rounded-stamp border border-white/20 flex items-center justify-center text-white"
           aria-label="前の写真"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -88,7 +88,7 @@ export default function PhotoSwiper({ photoUrls, onPhotoChange }: Props) {
       {currentIndex < photoUrls.length - 1 && (
         <button
           onClick={() => scrollTo(currentIndex + 1)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/40 rounded-full flex items-center justify-center text-white"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-ink-deep/60 rounded-stamp border border-white/20 flex items-center justify-center text-white"
           aria-label="次の写真"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -104,8 +104,8 @@ export default function PhotoSwiper({ photoUrls, onPhotoChange }: Props) {
             <button
               key={i}
               onClick={() => scrollTo(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                i === currentIndex ? 'bg-white' : 'bg-white/50'
+              className={`rounded-full transition-all duration-200 ${
+                i === currentIndex ? 'bg-ember w-3 h-1.5' : 'bg-white/60 w-1.5 h-1.5'
               }`}
               aria-label={`写真 ${i + 1}`}
             />

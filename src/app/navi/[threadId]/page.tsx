@@ -67,7 +67,7 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
             </svg>
           </button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-lg">🤖</span>
+            <span className="text-lg">🦜</span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">{thread.title}</p>
               <p className="text-xs text-gray-400">ナビちゃん</p>
@@ -85,7 +85,7 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
           >
             {msg.role === 'navi' && (
               <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-none text-sm">
-                🤖
+                🦜
               </div>
             )}
             <div
@@ -104,7 +104,7 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
         {isThisStreaming && (
           <div className="flex items-end gap-2">
             <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-none text-sm">
-              🤖
+              🦜
             </div>
             <div className="max-w-[75%] px-3.5 py-2.5 rounded-2xl rounded-bl-md text-sm leading-relaxed bg-white text-gray-800 shadow-sm border border-gray-100 whitespace-pre-wrap">
               {streamingContent || (
@@ -122,7 +122,7 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
       </div>
 
       {/* 入力欄 */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-3 py-2 z-40">
+      <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-200 px-3 py-2 z-40">
         <div className="max-w-md mx-auto flex items-end gap-2">
           <textarea
             value={input}

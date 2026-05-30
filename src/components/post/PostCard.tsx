@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -70,10 +71,16 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
   };
 
   return (
-    <article className={`bg-white border-b border-gray-100 ${deleting ? 'opacity-50 pointer-events-none' : ''}`}>
+    <motion.article
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className={`bg-white border-b border-parchment-dark ${deleting ? 'opacity-50 pointer-events-none' : ''}`}
+    >
       {/* ユーザー情報 */}
-      <div className="flex items-center gap-2.5 px-3 py-2">
-        <Link href={`/user/${post.user.id}/posts`} className="flex items-center gap-2.5 flex-1 min-w-0 hover:bg-gray-50 transition-colors rounded-lg -mx-1 px-1">
+      <div className="flex items-center gap-2.5 px-3 py-2.5">
+        <Link href={`/user/${post.user.id}/posts`} className="flex items-center gap-2.5 flex-1 min-w-0 hover:bg-parchment/50 transition-colors rounded-lg -mx-1 px-1">
           <div className="w-9 h-9 rounded-full overflow-hidden flex-none">
             <Image
               src={post.user.avatarUrl}
@@ -84,8 +91,8 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{post.user.name}</p>
-            <p className="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
+            <p className="text-sm font-semibold text-ink-deep tracking-tight truncate">{post.user.name}</p>
+            <p className="text-xs text-ink-light tracking-wide">{formatDate(post.createdAt)}</p>
           </div>
         </Link>
         {isOwner && (
@@ -93,18 +100,18 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
             <button
               type="button"
               onClick={() => setMenuOpen((prev) => !prev)}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-ink-light hover:text-ink-mid rounded-full hover:bg-parchment transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
               </svg>
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-9 w-36 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
+              <div className="absolute right-0 top-9 w-36 bg-white border border-parchment-dark rounded-xl shadow-card z-10 overflow-hidden">
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  className="w-full text-left px-4 py-3 text-sm text-coral hover:bg-[#FFF0F3] transition-colors"
                 >
                   投稿を削除
                 </button>
@@ -125,14 +132,14 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
 
       {/* 本文 */}
       <div className="px-3 pt-2">
-        <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{post.body}</p>
+        <p className="text-sm text-ink-deep leading-relaxed whitespace-pre-wrap tracking-[0.01em]">{post.body}</p>
       </div>
 
       {/* ハッシュタグ */}
       {post.hashtags.length > 0 && (
         <div className="px-3 pt-1.5 flex flex-wrap gap-1">
           {post.hashtags.map((tag) => (
-            <span key={tag} className="text-xs text-blue-500">
+            <span key={tag} className="text-xs font-medium" style={{ color: '#1D9BF0' }}>
               #{tag}
             </span>
           ))}
@@ -144,7 +151,7 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
         <div>
           <button
             onClick={() => setShowMap((prev) => !prev)}
-            className="flex items-center gap-1.5 mx-3 mb-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex items-center gap-1.5 mx-3 mb-1 text-xs text-teal font-medium hover:text-teal-mid transition-colors tracking-wide"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
               <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clipRule="evenodd" />
@@ -159,6 +166,6 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
 
       {/* アクションボタン */}
       <ActionButtons post={post} onWantToGo={onWantToGo} />
-    </article>
+    </motion.article>
   );
 }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 const leftTabs = [
   {
@@ -68,48 +69,74 @@ export default function BottomTab() {
       <Link
         key={tab.href}
         href={tab.href}
-        className={`flex flex-col items-center gap-0.5 min-w-[52px] transition-colors ${
-          active ? 'text-blue-500' : 'text-gray-400'
+        className={`relative flex flex-col items-center gap-0.5 min-w-[56px] transition-colors duration-200 ${
+          active ? 'text-ember' : 'text-ink-mid'
         }`}
       >
         {tab.icon(active)}
-        <span className="text-[10px] font-medium">{tab.label}</span>
+        <span className="text-[10px] font-semibold tracking-wide whitespace-nowrap">{tab.label}</span>
+        {active && (
+          <motion.span
+            layoutId="tabIndicator"
+            className="absolute -bottom-1 left-0 right-0 mx-auto w-4 h-0.5 bg-ember rounded-full"
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          />
+        )}
       </Link>
     );
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t-2 border-blue-200 z-50">
-      <div className="max-w-xl mx-auto h-full flex items-center justify-around px-1">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: '#F5EFE0',
+        borderTop: '1.5px solid #E8621A',
+        boxShadow: '0 -4px 20px rgba(28,24,20,0.10)',
+      }}
+    >
+      <div className="max-w-xl mx-auto h-16 flex items-center justify-around px-1">
         {/* 左2タブ */}
         {leftTabs.map(renderTab)}
 
         {/* 中央左：投稿ボタン */}
         <button
           onClick={handlePost}
-          className="flex flex-col items-center gap-0.5 -mt-5 min-w-[52px]"
-          aria-label="投稿する"
+          className="flex flex-col items-center gap-0.5 -mt-6 min-w-[52px]"
+          aria-label="旅を記録する"
         >
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-md text-white hover:bg-blue-600 active:bg-blue-700 transition-colors">
+          <div
+            className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-white transition-all duration-200 active:scale-95"
+            style={{
+              background: '#E8621A',
+              boxShadow: '0 4px 16px rgba(232,98,26,0.50), 0 2px 6px rgba(0,0,0,0.20)',
+            }}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
               <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
             </svg>
           </div>
-          <span className="text-[10px] font-medium text-gray-400">投稿</span>
+          <span className="text-[10px] font-semibold text-ink-mid tracking-wide">記録</span>
         </button>
 
         {/* 中央右：相談ボタン */}
         <button
           onClick={handleConsult}
-          className="flex flex-col items-center gap-0.5 -mt-5 min-w-[52px]"
+          className="flex flex-col items-center gap-0.5 -mt-6 min-w-[52px]"
           aria-label="旅を相談する"
         >
-          <div className="w-12 h-12 bg-sky-400 rounded-full flex items-center justify-center shadow-md text-white hover:bg-sky-500 active:bg-sky-600 transition-colors">
+          <div
+            className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-white transition-all duration-200 active:scale-95"
+            style={{
+              background: '#1B6B6E',
+              boxShadow: '0 4px 16px rgba(27,107,110,0.50), 0 2px 6px rgba(0,0,0,0.20)',
+            }}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
               <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405Z" />
             </svg>
           </div>
-          <span className="text-[10px] font-medium text-gray-400">相談</span>
+          <span className="text-[10px] font-semibold text-ink-mid tracking-wide">相談</span>
         </button>
 
         {/* 右2タブ */}

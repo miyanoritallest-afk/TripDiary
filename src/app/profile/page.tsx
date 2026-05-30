@@ -128,7 +128,7 @@ export default function ProfilePage() {
     <div>
       <header className="sticky top-0 bg-white border-b border-gray-200 z-40">
         <div className="flex items-center justify-between px-4 h-12">
-          <h1 className="text-lg font-bold text-gray-900">プロフィール</h1>
+          <h1 className="text-lg font-bold text-ink-deep" style={{ fontFamily: 'var(--font-zen-maru)' }}>プロフィール</h1>
           <button
             onClick={openEdit}
             className="text-sm text-blue-500 font-medium hover:text-blue-700"
