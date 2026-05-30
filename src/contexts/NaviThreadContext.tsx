@@ -14,6 +14,7 @@ type NaviThreadContextType = {
   addThreadFromPost: (post: Post) => Promise<NaviThread>;
   createNewThread: (title: string) => Promise<NaviThread>;
   sendMessage: (threadId: string, content: string) => Promise<void>;
+  deleteThread: (threadId: string) => Promise<void>;
 };
 
 const NaviThreadContext = createContext<NaviThreadContextType | null>(null);
@@ -71,6 +72,12 @@ export function NaviThreadProvider({ children }: { children: ReactNode }) {
     setThreads((prev) => [thread, ...prev]);
     return thread;
   };
+
+  const deleteThread = useCallback(async (threadId: string): Promise<void> => {
+    const res = await fetch(`/api/navi/threads/${threadId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete thread');
+    setThreads((prev) => prev.filter((t) => t.id !== threadId));
+  }, []);
 
   const sendMessage = async (threadId: string, content: string): Promise<void> => {
     const tempUserMsgId = `temp_user_${Date.now()}`;
@@ -186,6 +193,7 @@ export function NaviThreadProvider({ children }: { children: ReactNode }) {
         addThreadFromPost,
         createNewThread,
         sendMessage,
+        deleteThread,
       }}
     >
       {children}

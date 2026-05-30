@@ -1,17 +1,20 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNaviThread } from '@/contexts/NaviThreadContext';
-import { useState } from 'react';
 
 export default function ChatPage({ params }: { params: { threadId: string } }) {
   const { threadId } = params;
   const router = useRouter();
-  const { threads, isStreaming, streamingThreadId, streamingContent, sendMessage, fetchThreads } =
+  const { threads, isStreaming, streamingThreadId, streamingContent, sendMessage, fetchThreads, deleteThread } =
     useNaviThread();
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,6 +22,28 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
       fetchThreads();
     }
   }, [threads.length, fetchThreads]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteThread(threadId);
+      router.replace('/navi');
+    } catch {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   const thread = threads.find((t) => t.id === threadId);
   const isThisStreaming = isStreaming && streamingThreadId === threadId;
@@ -73,8 +98,59 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
               <p className="text-xs text-gray-400">ナビちゃん</p>
             </div>
           </div>
+          {/* ・・・メニュー */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((prev) => !prev)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+              aria-label="メニュー"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                <button
+                  onClick={() => { setMenuOpen(false); setShowDeleteConfirm(true); }}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clipRule="evenodd" />
+                  </svg>
+                  スレッドを削除
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
+
+      {/* 削除確認ダイアログ */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
+          <div className="bg-white w-full max-w-sm rounded-2xl px-5 py-6 space-y-4">
+            <p className="text-base font-semibold text-gray-900 text-center">スレッドを削除しますか？</p>
+            <p className="text-sm text-gray-500 text-center">「{thread.title}」のすべての会話が削除されます。この操作は取り消せません。</p>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="w-full py-3 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50"
+              >
+                {isDeleting ? '削除中...' : '削除する'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="w-full py-3 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* メッセージ一覧 */}
       <div className="px-4 py-4 space-y-4" style={{ paddingBottom: '120px' }}>

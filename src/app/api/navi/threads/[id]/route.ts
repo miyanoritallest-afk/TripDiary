@@ -34,3 +34,19 @@ export async function GET(
     updatedAt: thread.updatedAt.toISOString(),
   });
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const thread = await prisma.naviThread.findUnique({ where: { id: params.id } });
+  if (!thread) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (thread.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  await prisma.naviThread.delete({ where: { id: params.id } });
+
+  return new NextResponse(null, { status: 204 });
+}
