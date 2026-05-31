@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { anthropic, NAVI_SYSTEM_PROMPT } from '@/lib/claude';
+import { naviThreadLimiter } from '@/lib/rate-limiters';
 
 function threadToResponse(thread: {
   id: string;
@@ -48,6 +49,14 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const rl = naviThreadLimiter.check(session.user.id);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'スレッドの作成が多すぎます。しばらくしてから再試行してください。' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } },
+    );
+  }
 
   const body = await req.json() as {
     title: string;
