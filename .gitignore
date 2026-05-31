@@ -38,6 +38,8 @@ next-env.d.ts
 
 # local file uploads (dev only; production uses S3)
 /public/uploads/
+# seed images are committed to repo for initial data population
+!/public/uploads/seed/
 
 # playwright
 /playwright-report/

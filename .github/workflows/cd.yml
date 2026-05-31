@@ -1,0 +1,33 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ secrets.EC2_HOST != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ~/app
+            git pull origin main
+            npm ci --omit=dev
+            npx prisma generate
+            npx prisma migrate deploy
+            npm run build
+            pm2 restart navilog
+            pm2 save
+            echo "Deploy complete: $(date)"
