@@ -9,7 +9,7 @@ async function main() {
 
   const haruto = await prisma.user.upsert({
     where: { email: 'haruto@example.com' },
-    update: {},
+    update: { avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=haruto` },
     create: {
       email: 'haruto@example.com',
       passwordHash,
@@ -21,49 +21,49 @@ async function main() {
 
   const yuki = await prisma.user.upsert({
     where: { email: 'yuki@example.com' },
-    update: {},
+    update: { avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=yuki` },
     create: {
       email: 'yuki@example.com',
       passwordHash,
       username: 'Yuki',
       bio: '週末は一人でどこかへ。海と魚が好きです🐟',
-      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=yuki`,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=yuki`,
     },
   });
 
   const misaki = await prisma.user.upsert({
     where: { email: 'misaki@example.com' },
-    update: {},
+    update: { avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=misaki` },
     create: {
       email: 'misaki@example.com',
       passwordHash,
       username: 'みさき',
       bio: '京都大好き。神社仏閣を巡るのが趣味です⛩',
-      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=misaki`,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=misaki`,
     },
   });
 
   const ryo = await prisma.user.upsert({
     where: { email: 'ryo@example.com' },
-    update: {},
+    update: { avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=ryo` },
     create: {
       email: 'ryo@example.com',
       passwordHash,
       username: 'Ryo',
       bio: '野球観戦と街歩きが好き。東京スポット巡り中⚾',
-      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=ryo`,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=ryo`,
     },
   });
 
   const sora = await prisma.user.upsert({
     where: { email: 'sora@example.com' },
-    update: {},
+    update: { avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=sora` },
     create: {
       email: 'sora@example.com',
       passwordHash,
       username: 'そら',
       bio: '自然と絶景が好き。山と火山のある場所に惹かれます🌋',
-      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=sora`,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=sora`,
     },
   });
 
