@@ -8,9 +8,10 @@ test.describe('プロフィール', () => {
 
   test('プロフィールページが表示される', async ({ page }) => {
     await page.goto('/profile');
-    await expect(page.getByText('投稿')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText('フォロワー')).toBeVisible();
-    await expect(page.getByText('フォロー中')).toBeVisible();
+    // プロフィール統計のラベル（p タグで表示される）
+    await expect(page.locator('p.text-sm.text-gray-500').filter({ hasText: '投稿' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('p.text-sm.text-gray-500').filter({ hasText: 'フォロワー' })).toBeVisible();
+    await expect(page.locator('p.text-sm.text-gray-500').filter({ hasText: 'フォロー中' })).toBeVisible();
   });
 
   test('編集ボタンでプロフィール編集モーダルが開く', async ({ page }) => {

@@ -5,10 +5,10 @@ test.describe('認証', () => {
     const uniqueEmail = `e2e-reg-${Date.now()}@example.com`;
 
     await page.goto('/register');
-    await page.getByLabel('ユーザー名').fill('e2eテストユーザー');
-    await page.getByLabel('メールアドレス').fill(uniqueEmail);
-    await page.getByLabel('パスワード', { exact: true }).fill('e2ePassword123');
-    await page.getByLabel('パスワード（確認）').fill('e2ePassword123');
+    await page.locator('input[placeholder="旅人たろう"]').fill('e2eテストユーザー');
+    await page.locator('input[placeholder="example@email.com"]').fill(uniqueEmail);
+    await page.locator('input[placeholder="8文字以上"]').fill('e2ePassword123');
+    await page.locator('input[placeholder="もう一度入力"]').fill('e2ePassword123');
     await page.getByRole('button', { name: 'アカウントを作成' }).click();
 
     await page.waitForURL('**/timeline', { timeout: 15_000 });
@@ -17,8 +17,8 @@ test.describe('認証', () => {
 
   test('正しい資格情報でログインできる', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel('メールアドレス').fill('e2e-test@example.com');
-    await page.getByLabel('パスワード').fill('e2ePassword123');
+    await page.locator('input[placeholder="example@email.com"]').fill('e2e-test@example.com');
+    await page.locator('input[placeholder="8文字以上"]').fill('e2ePassword123');
     await page.getByRole('button', { name: 'ログイン' }).click();
 
     await page.waitForURL('**/timeline', { timeout: 15_000 });
@@ -27,8 +27,8 @@ test.describe('認証', () => {
 
   test('誤ったパスワードでエラーメッセージが表示される', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel('メールアドレス').fill('e2e-test@example.com');
-    await page.getByLabel('パスワード').fill('wrongpassword');
+    await page.locator('input[placeholder="example@email.com"]').fill('e2e-test@example.com');
+    await page.locator('input[placeholder="8文字以上"]').fill('wrongpassword');
     await page.getByRole('button', { name: 'ログイン' }).click();
 
     await expect(
