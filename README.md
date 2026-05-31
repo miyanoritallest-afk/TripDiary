@@ -56,6 +56,9 @@
 | AI | Claude API（開発: claude-haiku-4-5 / 本番: claude-sonnet-4-6） |
 | ホスティング | AWS EC2（Terraform で構成済み） |
 
+<details>
+<summary>開発環境構築・品質チェック</summary>
+
 ## 環境構築（開発）
 
 ### 必要なソフトウェア
@@ -133,6 +136,8 @@ npm run lint        # ESLint
 npm run test        # Vitest（ユニットテスト）
 npm run check       # 上記3つを一括実行
 ```
+
+</details>
 
 ## プロジェクト構成
 
