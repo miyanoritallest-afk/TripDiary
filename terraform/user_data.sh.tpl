@@ -38,9 +38,9 @@ APP_DIR="/home/ec2-user/app"
 git clone "${github_repo_url}" "$APP_DIR"
 chown -R ec2-user:ec2-user "$APP_DIR"
 
-# ── 5. 依存パッケージインストール ──────────────────────────────────────
+# ── 5. 依存パッケージインストール（devDeps含む: ts-node が必要） ────────
 cd "$APP_DIR"
-sudo -u ec2-user npm ci --omit=dev
+sudo -u ec2-user npm ci
 
 # ── 6. .env.production をアプリディレクトリにコピー ────────────────────
 sudo -u ec2-user cp /home/ec2-user/.env.production "$APP_DIR/.env.production"
@@ -48,14 +48,16 @@ sudo -u ec2-user cp /home/ec2-user/.env.production "$APP_DIR/.env.production"
 # ── 7. Prisma マイグレーション（本番用） ────────────────────────────────
 # RDS が起動完了するまで最大 3 分リトライ
 for i in $(seq 1 18); do
-  sudo -u ec2-user npx prisma migrate deploy --schema="$APP_DIR/prisma/schema.prisma" && break
+  sudo -u ec2-user env $(cat "$APP_DIR/.env.production" | grep -v '^#' | xargs) \
+    npx prisma migrate deploy --schema="$APP_DIR/prisma/schema.prisma" && break
   echo "DB not ready yet, retrying in 10s ($i/18)..."
   sleep 10
 done
 
 # ── 7b. 初回シードデータ投入（upsert で冪等） ───────────────────────────
 cd "$APP_DIR"
-sudo -u ec2-user npx prisma db seed
+sudo -u ec2-user env $(cat "$APP_DIR/.env.production" | grep -v '^#' | xargs) \
+  npx prisma db seed
 
 # ── 8. Next.js ビルド ───────────────────────────────────────────────────
 sudo -u ec2-user npm run build

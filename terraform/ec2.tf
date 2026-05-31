@@ -18,7 +18,7 @@ resource "aws_instance" "app" {
 
   root_block_device {
     volume_type = "gp3"
-    volume_size = 20 # フリーティア 30GB 以内
+    volume_size = 30 # フリーティア 30GB 以内（AMI最小要件）
   }
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
