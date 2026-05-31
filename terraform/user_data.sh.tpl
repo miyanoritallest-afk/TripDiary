@@ -53,6 +53,10 @@ for i in $(seq 1 18); do
   sleep 10
 done
 
+# ── 7b. 初回シードデータ投入（upsert で冪等） ───────────────────────────
+cd "$APP_DIR"
+sudo -u ec2-user npx prisma db seed
+
 # ── 8. Next.js ビルド ───────────────────────────────────────────────────
 sudo -u ec2-user npm run build
 
