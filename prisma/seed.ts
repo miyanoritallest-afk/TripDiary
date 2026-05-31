@@ -15,7 +15,7 @@ async function main() {
       passwordHash,
       username: 'はると',
       bio: 'ゲームとアニメが好き。イベントがあれば全国どこでも行きます！',
-      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=haruto`,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/png?seed=haruto`,
     },
   });
 
