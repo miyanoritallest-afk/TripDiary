@@ -32,12 +32,14 @@
 
 ## デモ動画
 
+リンクをクリックすると GitHub 上でそのまま再生できます。
+
 | 動画 | 内容 |
 |------|------|
-| [▶ ナビちゃん会話デモ](screenshots/提出資料/デモ動画/ナビちゃん会話デモ.mp4) | ナビちゃんと旅行プランを相談する様子 |
-| [▶ 「行きたい！」からスレッド自動生成](screenshots/提出資料/デモ動画/ナビちゃんスレッド_行きたいボタン.mp4) | 投稿に「行きたい！」を押すとナビちゃんスレッドが自動生成される |
-| [▶ ナビちゃんスレッド（相談ボタン）](screenshots/提出資料/デモ動画/ナビちゃんスレッド_相談ボタン.mp4) | スレッドから旅行プランを相談する |
-| [▶ 画像投稿デモ](screenshots/提出資料/デモ動画/画像投稿デモ.mp4) | 写真・地図ピン付きで旅行を投稿する |
+| [▶ ナビちゃん会話デモ](https://github.com/miyanoritallest-afk/TripDiary/releases/download/v1.0.0/navi-chat-demo.mp4) | ナビちゃんと旅行プランを相談する様子 |
+| [▶ 「行きたい！」からスレッド自動生成](https://github.com/miyanoritallest-afk/TripDiary/releases/download/v1.0.0/navi-want-to-go.mp4) | 投稿に「行きたい！」を押すとナビちゃんスレッドが自動生成される |
+| [▶ ナビちゃんスレッド（相談ボタン）](https://github.com/miyanoritallest-afk/TripDiary/releases/download/v1.0.0/navi-consult.mp4) | スレッドから旅行プランを相談する |
+| [▶ 画像投稿デモ](https://github.com/miyanoritallest-afk/TripDiary/releases/download/v1.0.0/photo-post-demo.mp4) | 写真・地図ピン付きで旅行を投稿する |
 
 ## 技術スタック
 
