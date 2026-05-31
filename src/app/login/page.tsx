@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-parchment flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-card shadow-card border border-parchment-dark p-8">
-        <h1 className="text-3xl font-black text-center text-ink-deep tracking-tighter mb-1">TripDiary</h1>
+        <h1 className="text-3xl font-black text-center text-ink-deep tracking-tighter mb-1">Navilog</h1>
         <p className="text-center text-ink-light text-sm mb-8 tracking-wide">旅をシェアする</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
