@@ -38,9 +38,9 @@ APP_DIR="/home/ec2-user/app"
 git clone "${github_repo_url}" "$APP_DIR"
 chown -R ec2-user:ec2-user "$APP_DIR"
 
-# ── 5. 依存パッケージインストール（devDeps含む: ts-node が必要） ────────
+# ── 5. 依存パッケージインストール（本番用: devDeps除外） ─────────────────
 cd "$APP_DIR"
-sudo -u ec2-user npm ci
+sudo -u ec2-user npm ci --omit=dev
 
 # ── 6. .env.production をアプリディレクトリにコピー ────────────────────
 sudo -u ec2-user cp /home/ec2-user/.env.production "$APP_DIR/.env.production"
