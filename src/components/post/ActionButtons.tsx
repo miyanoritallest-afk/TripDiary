@@ -65,6 +65,7 @@ export default function ActionButtons({ post, onWantToGo }: Props) {
     <div className="px-3 py-2 flex items-center gap-4">
       {/* いいねボタン */}
       <motion.button
+        data-testid="like-button"
         onClick={handleLike}
         whileTap={{ scale: 0.92 }}
         className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-all ${
@@ -93,6 +94,7 @@ export default function ActionButtons({ post, onWantToGo }: Props) {
 
       {/* 行きたい！ボタン */}
       <motion.button
+        data-testid="want-to-go-button"
         onClick={handleWantToGo}
         whileTap={{ scale: 0.92 }}
         className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-all ${

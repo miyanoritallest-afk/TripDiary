@@ -36,6 +36,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local file uploads (dev only; production uses S3)
+/public/uploads/
+
+# playwright
+/playwright-report/
+/test-results/
+
 # terraform
 terraform/*.tfvars
 terraform/.terraform/

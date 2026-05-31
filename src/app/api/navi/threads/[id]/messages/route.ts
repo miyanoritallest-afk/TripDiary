@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { anthropic, NAVI_SYSTEM_PROMPT, updateUserPreferences } from '@/lib/claude';
+import { naviMessageLimiter } from '@/lib/rate-limiters';
 
 export const runtime = 'nodejs';
 
@@ -13,6 +14,14 @@ export async function POST(
 ) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const rl = naviMessageLimiter.check(session.user.id);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'リクエストが多すぎます。しばらくしてから再試行してください。' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } },
+    );
+  }
 
   const thread = await prisma.naviThread.findUnique({
     where: { id: params.id },

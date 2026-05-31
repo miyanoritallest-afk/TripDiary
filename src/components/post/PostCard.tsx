@@ -76,6 +76,7 @@ export default function PostCard({ post, onWantToGo, onDelete }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+      data-testid="post-card"
       className={`bg-white border-b border-parchment-dark ${deleting ? 'opacity-50 pointer-events-none' : ''}`}
     >
       {/* ユーザー情報 */}
