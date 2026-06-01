@@ -35,22 +35,22 @@
 ### ナビちゃん会話デモ
 ナビちゃんと旅行プランを相談する様子
 
-<video src="https://github.com/user-attachments/assets/284f8302-1462-4db1-b537-194081c8d1c5" controls width="800"></video>
+![ナビちゃん会話デモ](screenshots/提出資料/デモ動画/navi-chat-demo.gif)
 
 ### 「行きたい！」からスレッド自動生成
 投稿に「行きたい！」を押すとナビちゃんスレッドが自動生成される
 
-<video src="https://github.com/user-attachments/assets/d191f412-e8df-498c-b64f-35072b42b85a" controls width="800"></video>
+![行きたい！からスレッド自動生成](screenshots/提出資料/デモ動画/navi-want-to-go.gif)
 
 ### ナビちゃんスレッド（相談ボタン）
 スレッドから旅行プランを相談する
 
-<video src="https://github.com/user-attachments/assets/511f19b3-fe57-4c16-9f46-07703fedcbf9" controls width="800"></video>
+![ナビちゃんスレッド（相談ボタン）](screenshots/提出資料/デモ動画/navi-consult.gif)
 
 ### 画像投稿デモ
 写真・地図ピン付きで旅行を投稿する
 
-<video src="https://github.com/user-attachments/assets/71ab2cca-b57f-4e2d-9ca6-774295489b76" controls width="800"></video>
+![画像投稿デモ](screenshots/提出資料/デモ動画/photo-post-demo.gif)
 
 ## 技術スタック
 
