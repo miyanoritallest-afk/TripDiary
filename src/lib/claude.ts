@@ -39,6 +39,12 @@ export async function updateUserPreferences(userId: string, threadId: string): P
 
     const existing = await prisma.userPreference.findUnique({ where: { userId } });
 
+    // 前回の好み更新以降に追加されたメッセージが4件未満なら再生成しない
+    if (existing?.updatedAt) {
+      const newCount = messages.filter((m) => m.createdAt > existing.updatedAt).length;
+      if (newCount < 4) return;
+    }
+
     const conversationText = messages
       .map((m) => `${m.role === 'navi' ? 'ナビちゃん' : 'ユーザー'}: ${m.content}`)
       .join('\n');
