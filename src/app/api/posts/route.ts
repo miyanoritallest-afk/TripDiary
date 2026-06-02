@@ -3,14 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { postToApiResponse } from '@/lib/mappers';
-
-const POST_INCLUDE = {
-  user: true,
-  photos: { include: { pin: true } },
-  likes: true,
-  wantToGos: true,
-} as const;
+import { postToApiResponse, createPostInclude } from '@/lib/mappers';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -34,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   const posts = await prisma.post.findMany({
     where: type === 'following' ? { userId: { in: whereFollowingIds ?? [] } } : undefined,
-    include: POST_INCLUDE,
+    include: createPostInclude(currentUserId),
     orderBy: { createdAt: 'desc' },
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -88,7 +81,7 @@ export async function POST(req: NextRequest) {
         })),
       },
     },
-    include: POST_INCLUDE,
+    include: createPostInclude(session.user.id),
   });
 
   return NextResponse.json(postToApiResponse(post, session.user.id), { status: 201 });

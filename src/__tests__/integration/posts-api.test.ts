@@ -82,8 +82,10 @@ describe('POST /api/posts', () => {
         id: 'user-1', username: 'testuser', email: 'test@example.com',
         passwordHash: 'hash', avatarUrl: null, bio: null,
         createdAt: new Date(), updatedAt: new Date(),
+        followers: [],
       },
       photos: [{ id: 'p1', postId: 'post-new', imageUrl: 'https://example.com/img.jpg', displayOrder: 1, createdAt: new Date(), pin: null }],
+      _count: { likes: 0, wantToGos: 0 },
       likes: [],
       wantToGos: [],
     };

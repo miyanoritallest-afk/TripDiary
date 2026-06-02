@@ -36,7 +36,7 @@ export async function POST(
     return NextResponse.json({ error: 'content is required' }, { status: 400 });
   }
 
-  await prisma.naviMessage.create({
+  const userMessage = await prisma.naviMessage.create({
     data: { threadId: params.id, role: 'user', content: body.content.trim() },
   });
 
@@ -48,10 +48,7 @@ export async function POST(
     ? `${NAVI_SYSTEM_PROMPT}\n\n# このユーザーの旅行嗜好\n${userPref.summary}`
     : NAVI_SYSTEM_PROMPT;
 
-  const allMessages = await prisma.naviMessage.findMany({
-    where: { threadId: params.id },
-    orderBy: { createdAt: 'asc' },
-  });
+  const allMessages = [...thread.messages, userMessage];
 
   const claudeMessages = allMessages.map((m) => ({
     role: m.role === 'navi' ? ('assistant' as const) : ('user' as const),

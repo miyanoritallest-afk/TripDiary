@@ -3,14 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { postToApiResponse } from '@/lib/mappers';
-
-const POST_INCLUDE = {
-  user: true,
-  photos: { include: { pin: true } },
-  likes: true,
-  wantToGos: true,
-} as const;
+import { postToApiResponse, createPostInclude } from '@/lib/mappers';
 
 export async function GET(
   _req: NextRequest,
@@ -21,7 +14,7 @@ export async function GET(
 
   const post = await prisma.post.findUnique({
     where: { id: params.id },
-    include: POST_INCLUDE,
+    include: createPostInclude(session.user.id),
   });
 
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });

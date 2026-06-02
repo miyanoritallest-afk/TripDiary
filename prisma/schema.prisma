@@ -11,7 +11,7 @@ model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String   @map("password_hash")
-  username     String
+  username     String   @unique
   bio          String?
   avatarUrl    String?  @map("avatar_url")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -42,6 +42,8 @@ model Post {
   wantToGos   WantToGo[]
   naviThreads NaviThread[]
 
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
   @@map("posts")
 }
 
@@ -80,6 +82,7 @@ model Like {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
+  @@index([userId])
   @@map("likes")
 }
 
@@ -93,6 +96,7 @@ model WantToGo {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
+  @@index([userId])
   @@map("want_to_go")
 }
 
@@ -106,6 +110,8 @@ model Follow {
   following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
   @@map("follows")
 }
 
@@ -122,6 +128,7 @@ model NaviThread {
   sourcePost Post?         @relation(fields: [sourcePostId], references: [id], onDelete: SetNull)
   messages   NaviMessage[]
 
+  @@index([userId])
   @@map("navi_threads")
 }
 
@@ -134,6 +141,7 @@ model NaviMessage {
 
   thread NaviThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
+  @@index([threadId])
   @@map("navi_messages")
 }
 

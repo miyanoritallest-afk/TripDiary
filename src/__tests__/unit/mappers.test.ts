@@ -28,8 +28,9 @@ describe('postToApiResponse', () => {
   it('基本フィールドを正しくマッピングする', () => {
     const input = {
       ...basePost,
-      user: baseUser,
+      user: { ...baseUser, followers: [] },
       photos: [],
+      _count: { likes: 0, wantToGos: 0 },
       likes: [],
       wantToGos: [],
     };
@@ -49,8 +50,9 @@ describe('postToApiResponse', () => {
   it('avatarUrl が null のとき ui-avatars フォールバックを使う', () => {
     const input = {
       ...basePost,
-      user: { ...baseUser, avatarUrl: null },
+      user: { ...baseUser, avatarUrl: null, followers: [] },
       photos: [],
+      _count: { likes: 0, wantToGos: 0 },
       likes: [],
       wantToGos: [],
     };
@@ -64,12 +66,13 @@ describe('postToApiResponse', () => {
   it('写真を displayOrder 昇順にソートする', () => {
     const input = {
       ...basePost,
-      user: baseUser,
+      user: { ...baseUser, followers: [] },
       photos: [
         { id: 'p2', postId: 'post-1', imageUrl: 'url2', displayOrder: 2, createdAt: new Date(), pin: null },
         { id: 'p1', postId: 'post-1', imageUrl: 'url1', displayOrder: 1, createdAt: new Date(), pin: null },
         { id: 'p3', postId: 'post-1', imageUrl: 'url3', displayOrder: 3, createdAt: new Date(), pin: null },
       ],
+      _count: { likes: 0, wantToGos: 0 },
       likes: [],
       wantToGos: [],
     };
@@ -82,7 +85,7 @@ describe('postToApiResponse', () => {
   it('ピン付き写真を photoPins に含める', () => {
     const input = {
       ...basePost,
-      user: baseUser,
+      user: { ...baseUser, followers: [] },
       photos: [
         {
           id: 'p1', postId: 'post-1', imageUrl: 'url1', displayOrder: 1, createdAt: new Date(),
@@ -95,6 +98,7 @@ describe('postToApiResponse', () => {
           },
         },
       ],
+      _count: { likes: 0, wantToGos: 0 },
       likes: [],
       wantToGos: [],
     };
@@ -111,9 +115,10 @@ describe('postToApiResponse', () => {
   it('currentUser がいいねしている場合 isLiked が true になる', () => {
     const input = {
       ...basePost,
-      user: baseUser,
+      user: { ...baseUser, followers: [] },
       photos: [],
-      likes: [{ id: 'l1', userId: 'current-user', postId: 'post-1', createdAt: new Date() }],
+      _count: { likes: 1, wantToGos: 0 },
+      likes: [{ id: 'l1' }],
       wantToGos: [],
     };
 
@@ -127,8 +132,9 @@ describe('postToApiResponse', () => {
     const input = {
       ...basePost,
       body: null,
-      user: baseUser,
+      user: { ...baseUser, followers: [] },
       photos: [],
+      _count: { likes: 0, wantToGos: 0 },
       likes: [],
       wantToGos: [],
     };
@@ -136,6 +142,39 @@ describe('postToApiResponse', () => {
     const result = postToApiResponse(input, 'current-user');
 
     expect(result.body).toBe('');
+  });
+
+  it('フォロー中の投稿者では isFollowing が true になる', () => {
+    const input = {
+      ...basePost,
+      user: { ...baseUser, followers: [{ id: 'follow-1' }] },
+      photos: [],
+      _count: { likes: 0, wantToGos: 0 },
+      likes: [],
+      wantToGos: [],
+    };
+
+    const result = postToApiResponse(input, 'current-user');
+
+    expect(result.user.isFollowing).toBe(true);
+  });
+
+  it('likeCount が _count から取得され isLiked と独立している', () => {
+    const input = {
+      ...basePost,
+      user: { ...baseUser, followers: [] },
+      photos: [],
+      _count: { likes: 42, wantToGos: 5 },
+      likes: [],
+      wantToGos: [],
+    };
+
+    const result = postToApiResponse(input, 'current-user');
+
+    expect(result.likeCount).toBe(42);
+    expect(result.wantToGoCount).toBe(5);
+    expect(result.isLiked).toBe(false);
+    expect(result.isWantToGo).toBe(false);
   });
 });
 
